@@ -1,0 +1,298 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-mono: "JetBrains Mono", monospace;
+  
+  /* Brand Colors */
+  --color-brand-primary: #6C63FF;
+  --color-brand-primary-light: #9C88FF;
+  --color-brand-secondary: #00D4AA;
+  --color-brand-secondary-light: #00F5CC;
+  --color-brand-danger: #FF4757;
+  --color-brand-danger-light: #FF6B81;
+  --color-brand-warning: #FFA502;
+  --color-brand-warning-light: #FFC107;
+  
+  /* Backgrounds */
+  --color-bg-dark: #0F0F1A;
+  --color-bg-card: #1A1A2E;
+  --color-bg-card-alt: #1F1F35;
+  --color-border-card: #2D2D4E;
+  
+  /* Text */
+  --color-text-primary: #EAEAF5;
+  --color-text-secondary: #8888AA;
+  --color-text-muted: #666688;
+}
+
+/* Dark Theme by Default */
+:root {
+  --bg-page: #0F0F1A;
+  --bg-surface: #1A1A2E;
+  --bg-surface-alt: #1F1F35;
+  --bg-glass: rgba(108, 99, 255, 0.08);
+  
+  --text-primary: #EAEAF5;
+  --text-secondary: #8888AA;
+  --text-muted: #666688;
+  
+  --border-default: #2D2D4E;
+  --border-glass: rgba(108, 99, 255, 0.2);
+  
+  --glow-purple: 0 0 20px rgba(108, 99, 255, 0.3);
+  --glow-teal: 0 0 20px rgba(0, 212, 170, 0.3);
+  --glow-red: 0 0 20px rgba(255, 71, 87, 0.3);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #6C63FF 0%, #9C88FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass Card */
+.glass-card {
+  background: rgba(108, 99, 255, 0.08);
+  border: 1px solid rgba(108, 99, 255, 0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Standard Card */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: #6C63FF;
+  box-shadow: 0 0 20px rgba(108, 99, 255, 0.3);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  outline: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6C63FF 0%, #9C88FF 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(108, 99, 255, 0.4);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #00D4AA 0%, #00F5CC 100%);
+  color: #0F0F1A;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(0, 212, 170, 0.4);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #FF4757 0%, #FF6B81 100%);
+  color: white;
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid #2D2D4E;
+  color: #EAEAF5;
+}
+
+.btn-outline:hover {
+  border-color: #6C63FF;
+  background: rgba(108, 99, 255, 0.1);
+}
+
+/* Form Elements */
+.input {
+  width: 100%;
+  padding: 14px 18px;
+  background: #1A1A2E;
+  border: 1px solid #2D2D4E;
+  border-radius: 12px;
+  color: #EAEAF5;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #6C63FF;
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+}
+
+.input::placeholder {
+  color: #666688;
+}
+
+/* Status Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-safe {
+  background: rgba(0, 212, 170, 0.15);
+  color: #00D4AA;
+  border: 1px solid #00D4AA;
+}
+
+.badge-flagged {
+  background: rgba(255, 165, 2, 0.15);
+  color: #FFA502;
+  border: 1px solid #FFA502;
+}
+
+.badge-blocked {
+  background: rgba(255, 71, 87, 0.15);
+  color: #FF4757;
+  border: 1px solid #FF4757;
+}
+
+/* Progress Bars */
+.progress-bar {
+  height: 8px;
+  background: #1F1F35;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease forwards;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F0F1A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6C63FF;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9C88FF;
+}
+
+/* Loading Skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #1A1A2E 25%, #1F1F35 50%, #1A1A2E 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}

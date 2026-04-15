@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-mono: "JetBrains Mono", monospace;
+  
+  --color-brand-primary: #6C63FF;
+  --color-brand-secondary: #00D4AA;
+  --color-brand-danger: #FF4757;
+  --color-brand-warning: #FFA502;
+  
+  --color-bg-dark: #0F0F1A;
+  --color-bg-card: #1A1A2E;
+  --color-bg-card-alt: #1F1F35;
+  --color-border-card: #2D2D4E;
+  
+  --color-text-primary: #EAEAF5;
+  --color-text-secondary: #8888AA;
+}
+
+:root {
+  --bg-page: #0F0F1A;
+  --bg-surface: #1A1A2E;
+  --bg-surface-alt: #1F1F35;
+  --text-primary: #EAEAF5;
+  --text-secondary: #8888AA;
+  --text-muted: #666688;
+  --border-default: #2D2D4E;
+  --border-glass: rgba(108, 99, 255, 0.2);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #0F0F1A;
+  color: #EAEAF5;
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F0F1A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6C63FF;
+  border-radius: 3px;
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(108, 99, 255, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(108, 99, 255, 0.5); }
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease forwards;
+}
+
+/* Status indicators */
+.status-online {
+  background: #00D4AA;
+  box-shadow: 0 0 8px #00D4AA;
+}
+
+.status-offline {
+  background: #FF4757;
+}
+
+.status-warning {
+  background: #FFA502;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #6C63FF 0%, #9C88FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

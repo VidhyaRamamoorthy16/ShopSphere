@@ -1,0 +1,34 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY admin_requirements.txt .
+RUN pip install --no-cache-dir -r admin_requirements.txt
+
+# Copy source code
+COPY . .
+
+# Create models directory
+RUN mkdir -p models
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash admin
+RUN chown -R admin:admin /app
+USER admin
+
+# Expose port (bind to localhost only)
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://127.0.0.1:3000/admin/health || exit 1
+
+# Start the admin server
+CMD ["python", "admin_server.py"]

@@ -1,0 +1,131 @@
+{
+  "accuracy": 90.21,
+  "cv_mean": 90.92,
+  "cv_std": 0.57,
+  "n_samples": 2400,
+  "n_features": 55,
+  "feature_names": [
+    "method",
+    "path_len",
+    "body_len",
+    "path_depth",
+    "path_eq",
+    "path_amp",
+    "body_eq",
+    "body_amp",
+    "sql_select",
+    "sql_union",
+    "sql_drop",
+    "sql_insert",
+    "sql_delete",
+    "sql_or11",
+    "sql_comment",
+    "sql_exec",
+    "sql_cast",
+    "sql_timing",
+    "sql_schema",
+    "sql_char",
+    "quote_single",
+    "quote_double",
+    "semicolons",
+    "parens",
+    "xss_script",
+    "xss_js",
+    "xss_events",
+    "xss_alert",
+    "xss_img",
+    "xss_svg",
+    "xss_cookie",
+    "xss_eval",
+    "xss_vbs",
+    "angle_open",
+    "angle_close",
+    "pt_dotdot",
+    "pt_etc",
+    "pt_cmd",
+    "pt_proc",
+    "pt_encoded",
+    "pt_deep",
+    "ddos_empty_post",
+    "ddos_deep_path",
+    "ddos_long_path",
+    "bf_login",
+    "bf_auth",
+    "bf_password",
+    "bf_admin",
+    "enc_percent",
+    "enc_hex",
+    "ua_scanner",
+    "ua_curl",
+    "ua_empty",
+    "body_special_ratio",
+    "path_special_ratio"
+  ],
+  "threat_labels": {
+    "0": "Normal",
+    "1": "SQL Injection",
+    "2": "XSS",
+    "3": "Path Traversal",
+    "4": "DDoS",
+    "5": "Brute Force"
+  },
+  "classes": [
+    "Normal",
+    "SQL Injection",
+    "XSS",
+    "Path Traversal",
+    "DDoS",
+    "Brute Force"
+  ],
+  "report": {
+    "Normal": {
+      "precision": 1.0,
+      "recall": 0.765,
+      "f1-score": 0.8668555240793201,
+      "support": 200.0
+    },
+    "SQL Injection": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 80.0
+    },
+    "XSS": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 60.0
+    },
+    "Path Traversal": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 60.0
+    },
+    "DDoS": {
+      "precision": 0.45977011494252873,
+      "recall": 1.0,
+      "f1-score": 0.6299212598425197,
+      "support": 40.0
+    },
+    "Brute Force": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 40.0
+    },
+    "accuracy": 0.9020833333333333,
+    "macro avg": {
+      "precision": 0.9099616858237548,
+      "recall": 0.9608333333333334,
+      "f1-score": 0.9161294639869734,
+      "support": 480.0
+    },
+    "weighted avg": {
+      "precision": 0.9549808429118775,
+      "recall": 0.9020833333333333,
+      "f1-score": 0.9136832400199266,
+      "support": 480.0
+    }
+  }
+}
