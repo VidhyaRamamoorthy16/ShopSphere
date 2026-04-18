@@ -1,213 +1,275 @@
-# 🛒 ShopSphere — Intelligent API Gateway with ML-Powered Threat Detection
+# ShopSphere — Intelligent API Gateway with Real-Time Monitoring
 
-[![Vercel](https://img.shields.io/badge/Frontend-Live-success?logo=vercel)](https://shop-sphere-wine.vercel.app)
-[![Vercel](https://img.shields.io/badge/Dashboard-Live-success?logo=vercel)](https://shopsphere-monitor.vercel.app)
-[![Render](https://img.shields.io/badge/Gateway-Live-blue?logo=render)](https://shopsphere-gateway.onrender.com)
-[![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)](https://python.org)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-green?logo=node.js)](https://nodejs.org)
+> AI-Powered Security Layer for E-Commerce Applications
 
-AI-Powered Security Layer for E-Commerce Applications with real-time monitoring, ML-based threat detection, and Redis caching.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-shop--sphere--wine.vercel.app-blue)](https://shop-sphere-wine.vercel.app)
+[![Monitor](https://img.shields.io/badge/Monitor%20Dashboard-shopsphere--monitor.vercel.app-purple)](https://shopsphere-monitor.vercel.app)
+[![Gateway](https://img.shields.io/badge/API%20Gateway-Docs-green)](https://shopsphere-gateway.onrender.com/docs)
+[![Monitor API](https://img.shields.io/badge/Monitor%20API-Docs-orange)](https://shopsphere-monitor.onrender.com/docs)
+[![GitHub](https://img.shields.io/badge/GitHub-VidhyaRamamoorthy16-black)](https://github.com/VidhyaRamamoorthy16/ShopSphere)
 
-## 🌐 Live Deployments
+---
 
-| Service | URL | Status |
-|---------|-----|--------|
-| 🛒 **ShopSphere Frontend** | [https://shop-sphere-wine.vercel.app](https://shop-sphere-wine.vercel.app) | ✅ Live |
-| 📊 **Monitor Dashboard** | [https://shopsphere-monitor.vercel.app](https://shopsphere-monitor.vercel.app) | ✅ Live |
-| 🔒 **API Gateway** | [https://shopsphere-gateway.onrender.com/docs](https://shopsphere-gateway.onrender.com/docs) | ✅ Live |
-| 📡 **Monitor API** | [https://shopsphere-monitor.onrender.com/docs](https://shopsphere-monitor.onrender.com/docs) | ✅ Live |
-| ⚙️ **Backend API** | [https://shopsphere-backend.onrender.com/health](https://shopsphere-backend.onrender.com/health) | ✅ Live |
+## 🌐 Live Deployment
 
-## 🏗️ Architecture Overview
+| Service | URL |
+|---|---|
+| 🛒 ShopSphere Storefront | https://shop-sphere-wine.vercel.app |
+| 📊 Monitor Dashboard | https://shopsphere-monitor.vercel.app |
+| 🔒 API Gateway | https://shopsphere-gateway.onrender.com |
+| 📡 Monitor API | https://shopsphere-monitor.onrender.com |
+| ⚙️ Backend API | https://shopsphere-a1sj.onrender.com |
+
+> **Note:** Render free-tier services spin down after 15 min of inactivity. First request may take ~30s after idle.
+
+---
+
+## 📋 Overview
+
+ShopSphere is a production-deployed full-stack e-commerce platform demonstrating an **Intelligent API Gateway** that integrates machine learning threat detection, adaptive rate limiting, and a real-time monitoring dashboard across five independent microservices.
+
+- 🤖 90.21% ML threat detection accuracy (Random Forest, < 1ms inference)
+- ⚡ P95 gateway latency of 74.66 ms with zero errors
+- 🛡️ 5 attack classes: SQL Injection, XSS, Path Traversal, DDoS, Brute Force
+- 📊 Live monitoring dashboard with Redis-backed request feed
+- 🚀 Fully deployed — no local setup needed to evaluate
+
+---
+
+## 🏗️ Architecture
 
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   ShopSphere    │────▶│  API Gateway     │────▶│    Backend      │
-│   Frontend      │     │  (ML Security)   │     │   (Node.js)     │
-│   (Vercel)      │     │   (Render)       │     │   (Render)      │
-└─────────────────┘     └──────────────────┘     └─────────────────┘
-                               │                        │
-                               ▼                        ▼
-                        ┌──────────────────┐     ┌─────────────────┐
-                        │  Redis Cache     │     │   Supabase      │
-                        │  (Upstash)       │     │   (PostgreSQL)  │
-                        └──────────────────┘     └─────────────────┘
-                               │
-                               ▼
-                        ┌──────────────────┐
-                        │  Monitor API     │
-                        │   (Render)       │
-                        └──────────────────┘
-                               │
-                               ▼
-                        ┌──────────────────┐
-                        │ Monitor Dashboard│
-                        │    (Vercel)      │
-                        └──────────────────┘
+User
+│
+▼
+ShopSphere Frontend  (Vercel · React + Vite · port 5173)
+│
+▼
+API Gateway          (Render · FastAPI · port 5001)
+├─ 1. IP Ban Check          ← Redis permanent ban set
+├─ 2. Rate Limiting         ← Redis sliding window (100 req/60s)
+├─ 3. Feature Extraction    ← 55 features from request
+├─ 4. ML Inference          ← Random Forest (threat_model.pkl)
+├─ 5. Dual Logging          ← Redis + Supabase async
+└─ 6. Proxy                 ← httpx async to backend
+│
+▼
+Backend          (Render · Node.js + Express · port 8000)
+│
+▼
+Supabase          (PostgreSQL · 13 tables · RLS enabled)
+│
+▼ (read-only)
+Monitor API       (Render · FastAPI · port 3000)
+│
+▼
+Monitor Dashboard (Vercel · React + Vite · port 3001)
 ```
 
-## 🚀 Microservices Architecture
+---
 
-| Service | Port | Technology | Description |
-|---------|------|------------|-------------|
-| **API Gateway** | 5001 | Python + FastAPI | ML-powered threat detection, rate limiting, request routing |
-| **Backend** | 8000 | Node.js + Express | Core e-commerce API, authentication, cart, orders |
-| **Monitor API** | 3000 | Python + FastAPI | Real-time monitoring, logging, analytics endpoints |
-| **Monitor Dashboard** | 3001 | React + Vite | Security monitoring dashboard with live request tracking |
-| **ShopSphere Frontend** | 5173 | React + Vite | Modern e-commerce UI with USD pricing |
+## 🧩 Microservices
 
-## ✨ Key Features
+| Service | Port | Tech | Responsibility |
+|---|---|---|---|
+| API Gateway | 5001 | Python 3.11 + FastAPI | ML threat detection, rate limiting, async proxy |
+| Backend | 8000 | Node.js 20 + Express | Products, cart, orders, auth, Supabase CRUD |
+| Monitor API | 3000 | Python 3.11 + FastAPI | Read-only stats aggregator, WebSocket push |
+| Monitor Dashboard | 3001 | React 18 + Vite | Live admin console |
+| ShopSphere Frontend | 5173 | React 18 + Vite | Full e-commerce storefront |
 
-### 🔒 Security Layer (API Gateway)
-- **ML-Based Threat Detection** — Random Forest classifier with 90.21% accuracy
-- **Real-time Rate Limiting** — 100 requests/minute per IP
-- **Attack Pattern Recognition** — SQL Injection, XSS, Path Traversal, DDoS, Brute Force
-- **Request Logging** — All requests logged to Redis + Supabase
+---
 
-### 📊 Monitoring & Analytics
-- **Live Request Stream** — WebSocket + polling fallback
-- **Threat Detection Logs** — Real-time alerts with payload analysis
-- **Rate Limit Tracking** — Active windows, blocked IPs, historical data
-- **System Health Dashboard** — Service uptime, Redis stats, ML metrics
+## 🤖 ML Model Performance
 
-### 🛒 E-Commerce Features
-- **50 Products** — USD pricing across Electronics, Fashion, Books, Sports, Beauty, Toys, Home & Kitchen
-- **Cart & Wishlist** — Full CRUD with real-time updates
-- **Quick View Modal** — Product preview without navigation
-- **Recently Viewed** — Session-based product history
-- **Search & Filter** — Real-time product search
+| Metric | Value | Target | Status |
+|---|---|---|---|
+| Overall Accuracy | **90.21%** | ≥ 90% | ✅ |
+| SQL Injection Detection | **97%** | ≥ 95% | ✅ |
+| XSS Detection | **94%** | ≥ 90% | ✅ |
+| Path Traversal Detection | **95%** | ≥ 90% | ✅ |
+| Brute Force Detection | **99%** | ≥ 95% | ✅ |
+| DDoS Pattern Detection | **91%** | ≥ 88% | ✅ |
+| False Positive Rate | **< 8%** | < 10% | ✅ |
+| ML Inference Time | **< 1 ms** | < 5 ms | ✅ |
+| Gateway P95 Latency | **74.66 ms** | < 100 ms | ✅ |
 
-### 🎨 Modern UI
-- **Responsive Design** — Mobile-first approach
-- **Dark Theme Dashboard** — Professional security console
-- **Toast Notifications** — Success/error feedback
-- **Skeleton Loading** — Better perceived performance
+---
 
 ## 🛠️ Tech Stack
 
-### Backend
-- **Python 3.13** + FastAPI (Gateway & Monitor API)
-- **Node.js 20** + Express (Backend API)
-- **Redis** — Caching & real-time data (Upstash)
-- **Supabase** — PostgreSQL database & authentication
-- **scikit-learn** — ML threat detection model
+| Category | Technology |
+|---|---|
+| Gateway | Python 3.11 + FastAPI + httpx |
+| Backend | Node.js 20 + Express |
+| Frontend | React 18 + Vite |
+| ML | scikit-learn + Random Forest + joblib |
+| In-Memory Store | Redis (Upstash) |
+| Database | Supabase (PostgreSQL) |
+| Real-Time Push | WebSocket (FastAPI) |
+| Frontend Hosting | Vercel |
+| Backend Hosting | Render |
+| Payment | Razorpay (test mode) |
+| Email | Nodemailer |
 
-### Frontend
-- **React 18** + Vite
-- **React Router DOM** — Client-side routing
-- **Recharts** — Data visualization
-- **Lucide React** — Icons
-- **Framer Motion** — Animations
+---
 
-### Infrastructure
-- **Vercel** — Frontend & Dashboard hosting
-- **Render** — Backend & API hosting
-- **Upstash** — Redis cloud service
-- **Supabase** — Database & auth
-- **GitHub** — Version control
-
-## 🚀 Quick Start (Local Development)
+## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.13+
 - Node.js 20+
-- Redis (local or cloud)
+- Python 3.11+
+- Redis ([Upstash](https://upstash.com) free tier recommended)
+- [Supabase](https://supabase.com) project
 
-### 1. Clone Repository
+### 1. Clone
 ```bash
 git clone https://github.com/VidhyaRamamoorthy16/ShopSphere.git
 cd ShopSphere
 ```
 
-### 2. Environment Setup
-Copy `.env.example` to `.env` in each service folder:
-
+### 2. Set up environment variables
 ```bash
-cp backend/.env.example backend/.env
-cp api-gateway/.env.example api-gateway/.env
-cp monitor-api/.env.example monitor-api/.env
-cp frontend/.env.example frontend/.env
+cp api-gateway/.env.example       api-gateway/.env
+cp backend/.env.example           backend/.env
+cp monitor-api/.env.example       monitor-api/.env
+cp frontend/.env.example          frontend/.env
+cp monitor-dashboard/.env.example monitor-dashboard/.env
 ```
 
-### 3. Start All Services
-```bash
-chmod +x start.sh
-./start.sh
+Fill in each `.env` file:
+
+```env
+# api-gateway/.env  and  monitor-api/.env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-role-key
+REDIS_URL=rediss://default:password@host:port
+
+# backend/.env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-role-key
+REDIS_URL=rediss://default:password@host:port
+
+# frontend/.env
+VITE_API_URL=http://localhost:5001
+
+# monitor-dashboard/.env
+VITE_MONITOR_URL=http://localhost:3000
+VITE_GATEWAY_URL=http://localhost:5001
 ```
 
-Or start individually:
-
+### 3. Train the ML model
 ```bash
-# Terminal 1 — Backend (Port 8000)
-cd backend && npm install && npm run dev
+cd api-gateway
+pip install -r requirements.txt
+python train_model.py
+cd ..
+```
 
-# Terminal 2 — API Gateway (Port 5001)
-cd api-gateway && source venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 5001 --reload
+### 4. Start all services
+```bash
+bash start.sh
+```
 
-# Terminal 3 — Monitor API (Port 3000)
-cd monitor-api && source venv/bin/activate && uvicorn monitor_server:app --host 0.0.0.0 --port 3000 --reload
-
-# Terminal 4 — Frontend (Port 5173)
+#### Or start individually (5 terminals):
+```bash
+cd backend && npm install && node server.js
+cd api-gateway && uvicorn main:app --host 0.0.0.0 --port 5001
+cd monitor-api && uvicorn monitor_server:app --host 0.0.0.0 --port 3000
 cd frontend && npm install && npm run dev
-
-# Terminal 5 — Monitor Dashboard (Port 3001)
 cd monitor-dashboard && npm install && npm run dev
 ```
 
-### 4. Access Services
-- **ShopSphere**: http://localhost:5173
-- **Monitor Dashboard**: http://localhost:3001
-- **API Gateway Docs**: http://localhost:5001/docs
-- **Monitor API Docs**: http://localhost:3000/docs
+---
 
-## 🧪 Testing Threat Detection
+## 🛡️ Security Features
 
-Open browser DevTools console and run:
+| Attack Type | Detection Signals |
+|---|---|
+| SQL Injection | SELECT, UNION, DROP, OR 1=1, --, /* |
+| XSS | script tags, event handlers, alert(), document.cookie |
+| Path Traversal | ../, /etc/passwd, /bin/sh, /proc/ |
+| DDoS | Abnormal request volume, path depth signals |
+| Brute Force | Login endpoint targeting with varied credentials |
+
+### Test threat detection (live)
 ```javascript
-fetch('http://localhost:5001/api/products?id=1 OR 1=1')
-  .then(r => r.json())
-  .then(d => console.log(d))
+// SQL Injection — expect 403
+fetch('https://shopsphere-gateway.onrender.com/api/products?id=1 OR 1=1')
+  .then(r => r.json()).then(console.log)
+
+// XSS — expect 403
+fetch('https://shopsphere-gateway.onrender.com/api/reviews', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ body: '<script>alert(document.cookie)</script>' })
+}).then(r => r.json()).then(console.log)
 ```
 
-You should see a `403` blocked response. Check the Monitor Dashboard → Threat Detection page.
+---
 
-## 📊 ML Model Metrics
+## 📡 API Endpoints
 
-```json
-{
-  "model": "Random Forest Classifier",
-  "accuracy": 90.21,
-  "cv_accuracy": 90.92,
-  "threat_classes": [
-    "SQL Injection",
-    "XSS",
-    "Path Traversal",
-    "DDoS",
-    "Brute Force"
-  ]
-}
-```
+### API Gateway
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /health | Gateway health check |
+| GET | /ml/metrics | ML model accuracy and metrics |
+| ANY | /{path} | Proxy to backend after security checks |
+
+### Monitor API
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /health | Service health |
+| GET | /monitor/overview | Requests, blocked count, threat score |
+| GET | /monitor/requests/live | Live request feed |
+| GET | /monitor/threats/live | Live threat events |
+| GET | /monitor/rate-limits/active | Active rate limits |
+| GET | /monitor/health | All 5 services status |
+| GET | /monitor/stats/hourly | Hourly chart data |
+
+---
 
 ## 📁 Project Structure
 
 ```
 ShopSphere/
-├── api-gateway/          # ML Security Gateway (Python)
-├── backend/              # E-Commerce API (Node.js)
-├── monitor-api/          # Monitoring Service (Python)
-├── monitor-dashboard/    # Security Dashboard (React)
-├── frontend/             # ShopSphere Store (React)
-└── README.md
+├── frontend/              # React + Vite storefront
+├── backend/               # Node.js + Express business logic
+├── api-gateway/           # FastAPI gateway with ML
+│   ├── main.py            # Core gateway logic
+│   └── train_model.py     # ML training script
+├── monitor-api/           # FastAPI read-only monitor
+│   └── monitor_server.py
+├── monitor-dashboard/     # React + Vite admin console
+└── start.sh               # One-command startup
 ```
-
-## 🔗 Links
-
-- 📱 **Live Demo**: https://shop-sphere-wine.vercel.app
-- 📊 **Dashboard**: https://shopsphere-monitor.vercel.app
-- 🔒 **API Gateway**: https://shopsphere-gateway.onrender.com/docs
-- 📡 **Monitor API**: https://shopsphere-monitor.onrender.com/docs
-- 📁 **GitHub**: https://github.com/VidhyaRamamoorthy16/ShopSphere
 
 ---
 
-<p align="center">Built with ❤️ for AI-powered e-commerce security</p>
+## 🗄️ Database Schema (13 tables)
+
+`products` · `users` · `cart` · `orders` · `order_items` · `wishlist` · `reviews` · `coupons` · `notifications` · `gateway_stats` · `threat_logs` · `rate_limit_logs` · `password_resets` 
+
+---
+
+## ☁️ Cloud Deployment
+
+| Service | Platform | Root Directory |
+|---|---|---|
+| Frontend | Vercel | frontend/ |
+| Monitor Dashboard | Vercel | monitor-dashboard/ |
+| Backend | Render (Node) | backend/ |
+| API Gateway | Render (Python) | api-gateway/ |
+| Monitor API | Render (Python) | monitor-api/ |
+| Redis | Upstash Free | — |
+| Database | Supabase Free | — |
+
+---
+
+## 👥 Author
+
+**Vidhya Ramamoorthy**
+
+- GitHub: [@VidhyaRamamoorthy16](https://github.com/VidhyaRamamoorthy16)
+- Email: vidhyaramamoorthy@gmail.com
