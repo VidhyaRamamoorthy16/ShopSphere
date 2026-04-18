@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { api } from '../config/api'
+import { api, API_BASE } from '../config/api'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ProductCard from '../components/ProductCard'
@@ -11,6 +11,7 @@ export default function Products() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
+  const [error, setError] = useState(null)
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
     search: searchParams.get('search') || '',
@@ -22,20 +23,34 @@ export default function Products() {
   useEffect(() => { fetchProducts() }, [filters])
 
   const fetchProducts = async () => {
-    setLoading(true)
-    try {
-      const p = new URLSearchParams()
-      if (filters.category) p.append('category', filters.category)
-      if (filters.search) p.append('search', filters.search)
-      if (filters.min_price) p.append('min_price', filters.min_price)
-      if (filters.max_price) p.append('max_price', filters.max_price)
-      if (filters.sort) p.append('sort', filters.sort)
-      p.append('limit', '20')
-      const data = await api.get(`/api/products?${p}`)
-      setProducts(data.products || [])
-      setTotal(data.total || 0)
-    } catch (e) {} finally { setLoading(false) }
+  setLoading(true)
+  setError(null)
+  try {
+    const params = new URLSearchParams()
+    if (filters.category && filters.category !== '') params.set('category', filters.category)
+    if (filters.search) params.set('search', filters.search)
+    if (filters.brand) params.set('brand', filters.brand)
+    if (filters.min_price) params.set('min_price', filters.min_price)
+    if (filters.max_price) params.set('max_price', filters.max_price)
+    if (filters.sort) params.set('sort', filters.sort)
+    if (filters.min_rating) params.set('min_rating', filters.min_rating)
+    params.set('limit', '50')
+    params.set('page', '1')
+
+    const response = await fetch(`${API_BASE}/api/products?${params}`, {
+      headers: { 'Content-Type': 'application/json' }
+    })
+    const data = await response.json()
+    setProducts(data.products || data || [])
+    setTotal(data.total || (data.products || data || []).length)
+  } catch (err) {
+    console.error('Products fetch error:', err)
+    setError('Failed to load products. Please refresh.')
+    setProducts([])
+  } finally {
+    setLoading(false)
   }
+}
 
   const s = {
     page: { background: 'var(--bg)', minHeight: '100vh' },
@@ -72,8 +87,8 @@ export default function Products() {
           </div>
           <div style={s.filterSection}>
             <span style={s.filterLabel}>Price Range</span>
-            <input style={s.priceInput} placeholder="Min ₹" type="number" value={filters.min_price} onChange={e => setFilters(f => ({ ...f, min_price: e.target.value }))} />
-            <input style={s.priceInput} placeholder="Max ₹" type="number" value={filters.max_price} onChange={e => setFilters(f => ({ ...f, max_price: e.target.value }))} />
+            <input style={s.priceInput} placeholder="Min $" type="number" value={filters.min_price} onChange={e => setFilters(f => ({ ...f, min_price: e.target.value }))} />
+            <input style={s.priceInput} placeholder="Max $" type="number" value={filters.max_price} onChange={e => setFilters(f => ({ ...f, max_price: e.target.value }))} />
           </div>
           <div style={s.filterSection}>
             <span style={s.filterLabel}>Sort By</span>

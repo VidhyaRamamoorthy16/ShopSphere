@@ -417,6 +417,33 @@ app.delete('/api/wishlist/:product_id', authMiddleware, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
+// POST /api/wishlist/toggle (alternate endpoint)
+app.post('/api/wishlist/toggle', authMiddleware, async (req, res) => {
+  try {
+    const { product_id } = req.body
+    if (!product_id) return res.status(400).json({ error: 'product_id required' })
+
+    const { data: existing } = await supabase
+      .from('wishlist')
+      .select('id')
+      .eq('user_id', req.user.id)
+      .eq('product_id', product_id)
+      .single()
+
+    if (existing) {
+      await supabase.from('wishlist').delete()
+        .eq('user_id', req.user.id)
+        .eq('product_id', product_id)
+      res.json({ action: 'removed', wishlisted: false })
+    } else {
+      await supabase.from('wishlist').insert([{ user_id: req.user.id, product_id }])
+      res.json({ action: 'added', wishlisted: true })
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // FEATURE 2: Reviews
 app.get('/api/products/:id/reviews', async (req, res) => {
   try {

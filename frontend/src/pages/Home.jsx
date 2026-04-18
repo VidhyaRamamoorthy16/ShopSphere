@@ -113,7 +113,7 @@ export default function Home() {
       <div style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
         <div style={{ ...c, display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
           {[
-            { icon: '🚚', label: 'Free Shipping', sub: 'On orders over ₹999' },
+            { icon: '🚚', label: 'Free Shipping', sub: 'On orders over $999' },
             { icon: '🛡', label: 'Secure Payment', sub: '100% secure transactions' },
             { icon: '↩', label: 'Easy Returns', sub: '30-day return policy' },
           ].map((t, i) => (
@@ -213,7 +213,7 @@ export default function Home() {
         <div style={{ background: 'var(--surface)', border: '1px solid var(--border2)', borderRadius: 20, padding: '36px 40px', minHeight: 200, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', gap: 10 }}>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text3)' }}>Free Shipping</div>
           <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-            Orders Above <span style={{ color: 'var(--primary)' }}>₹999</span> Ship Free
+            Orders Above <span style={{ color: 'var(--primary)' }}>$999</span> Ship Free
           </div>
           <button onClick={() => navigate('/products')} style={{ background: 'var(--primary-light)', color: 'var(--primary)', border: '1.5px solid var(--primary-mid)', padding: '10px 22px', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', width: 'fit-content', marginTop: 4 }}>
             Shop Now →

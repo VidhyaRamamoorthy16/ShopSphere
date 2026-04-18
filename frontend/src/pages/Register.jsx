@@ -26,16 +26,16 @@ export default function Register() {
     page: { background: 'var(--bg)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
     card: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 48, width: '100%', maxWidth: 440 },
     logo: { fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 800, textAlign: 'center', marginBottom: 8 },
-    logoSpan: { color: 'var(--violet)' },
+    logoSpan: { color: 'var(--primary)' },
     title: { fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 700, textAlign: 'center', marginBottom: 8 },
     subtitle: { fontSize: 14, color: 'var(--text2)', textAlign: 'center', marginBottom: 32 },
     inputWrap: { marginBottom: 20 },
     label: { fontSize: 12, fontWeight: 500, color: 'var(--text2)', marginBottom: 8, display: 'block' },
     input: { width: '100%', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 10, padding: '13px 16px', fontSize: 14, color: 'var(--text)', outline: 'none' },
-    error: { background: 'var(--rose-dim)', border: '1px solid var(--rose)', color: 'var(--rose)', padding: 12, borderRadius: 8, fontSize: 13, marginBottom: 20 },
-    btn: { width: '100%', background: 'var(--violet)', border: 'none', borderRadius: 10, padding: '15px', fontSize: 15, fontWeight: 600, color: '#fff', cursor: 'pointer', marginTop: 8 },
+    error: { background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', padding: 12, borderRadius: 8, fontSize: 13, marginBottom: 20 },
+    btn: { width: '100%', background: 'var(--primary)', border: 'none', borderRadius: 10, padding: '15px', fontSize: 15, fontWeight: 600, color: '#fff', cursor: 'pointer', marginTop: 8 },
     footer: { textAlign: 'center', marginTop: 24, fontSize: 13, color: 'var(--text2)' },
-    link: { color: 'var(--violet)', cursor: 'pointer', fontWeight: 500 },
+    link: { color: 'var(--primary)', cursor: 'pointer', fontWeight: 500 },
   }
 
   return (

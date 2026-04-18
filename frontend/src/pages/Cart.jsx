@@ -2,9 +2,16 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../config/api'
 import { useCart } from '../context/CartContext'
-import { toast } from '../components/Toast'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+
+const formatPrice = (price) => {
+  if (!price && price !== 0) return '$0.00'
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(price)
+}
 
 export default function Cart() {
   const navigate = useNavigate()
@@ -23,7 +30,7 @@ export default function Cart() {
     if (!api.isLoggedIn()) { setLoading(false); return }
     try {
       const data = await api.get('/api/cart')
-      setItems(data.items || [])
+      setItems(data.cart || data.items || [])
     } catch (e) {} finally { setLoading(false) }
   }
 
@@ -72,8 +79,8 @@ export default function Cart() {
     setCouponError('')
   }
 
-  const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0)
-  const savings = items.reduce((sum, i) => sum + (i.product.original_price - i.product.price) * i.quantity, 0)
+  const subtotal = items.reduce((sum, i) => sum + (i.products?.price || 0) * i.quantity, 0)
+  const savings = items.reduce((sum, i) => sum + ((i.products?.original_price || i.products?.price || 0) - (i.products?.price || 0)) * i.quantity, 0)
   const total = subtotal - discount
 
   const s = {
@@ -135,16 +142,16 @@ export default function Cart() {
           {items.map(item => (
             <div key={item.id} style={s.item}>
               <div style={s.img}>
-                <img src={item.product.image_url} alt={item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={e => e.target.src = `https://picsum.photos/seed/${item.product.id}/80/80`} />
+                <img src={item.products?.image_url} alt={item.products?.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={e => e.target.src = `https://picsum.photos/seed/${item.products?.id || item.id}/80/80`} />
               </div>
               <div style={s.details}>
-                <div style={s.name}>{item.product.name}</div>
-                <div style={s.seller}>{item.product.brand || 'ShopSphere'}</div>
+                <div style={s.name}>{item.products?.name || 'Product'}</div>
+                <div style={s.seller}>{item.products?.brand || 'ShopSphere'}</div>
                 <div>
-                  <span style={s.price}>₹{(item.product.price * item.quantity)?.toLocaleString()}</span>
-                  {item.product.original_price > item.product.price && (
-                    <span style={s.orig}>₹{(item.product.original_price * item.quantity)?.toLocaleString()}</span>
+                  <span style={s.price}>{formatPrice((item.products?.price || 0) * item.quantity)}</span>
+                  {(item.products?.original_price || 0) > (item.products?.price || 0) && (
+                    <span style={s.orig}>{formatPrice(item.products.original_price * item.quantity)}</span>
                   )}
                 </div>
                 <div style={s.qtyRow}>
@@ -168,7 +175,7 @@ export default function Cart() {
                     <span>{coupon.code} applied</span>
                     <button onClick={removeCoupon} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 10 }}>Remove</button>
                   </div>
-                  <div>You save ₹{discount.toLocaleString()}</div>
+                  <div>You save {formatPrice(discount)}</div>
                 </div>
               ) : (
                 <div style={{ display: 'flex', gap: 8 }}>
@@ -193,11 +200,11 @@ export default function Cart() {
             </div>
           )}
           
-          <div style={s.sumRow}><span>Subtotal</span><span>₹{subtotal?.toLocaleString()}</span></div>
+          <div style={s.sumRow}><span>Subtotal</span><span>{formatPrice(subtotal)}</span></div>
           <div style={s.sumRow}><span>Shipping</span><span>Free</span></div>
-          <div style={s.sumRow}><span>Savings</span><span style={{ color: 'var(--accent)' }}>− ₹{savings?.toLocaleString()}</span></div>
-          {discount > 0 && <div style={s.sumRow}><span>Coupon Discount</span><span style={{ color: 'var(--accent)' }}>− ₹{discount?.toLocaleString()}</span></div>}
-          <div style={s.sumTotal}><span>Total</span><span>₹{total?.toLocaleString()}</span></div>
+          <div style={s.sumRow}><span>Savings</span><span style={{ color: 'var(--accent)' }}>− {formatPrice(savings)}</span></div>
+          {discount > 0 && <div style={s.sumRow}><span>Coupon Discount</span><span style={{ color: 'var(--accent)' }}>− {formatPrice(discount)}</span></div>}
+          <div style={s.sumTotal}><span>Total</span><span>{formatPrice(total)}</span></div>
           <button style={s.placeBtn} onClick={() => navigate('/checkout')}>Place Order</button>
         </div>
       </div>

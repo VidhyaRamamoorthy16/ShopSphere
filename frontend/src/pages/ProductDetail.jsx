@@ -7,6 +7,14 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ProductCard from '../components/ProductCard'
 
+const formatPrice = (price) => {
+  if (!price && price !== 0) return '$0.00'
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(price)
+}
+
 export default function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -117,8 +125,8 @@ export default function ProductDetail() {
             </div>
 
             <div style={s.priceRow}>
-              <span style={s.price}>₹{product.price?.toLocaleString()}</span>
-              {product.original_price > product.price && <span style={s.originalPrice}>₹{product.original_price?.toLocaleString()}</span>}
+              <span style={s.price}>{formatPrice(product.price)}</span>
+              {product.original_price > product.price && <span style={s.originalPrice}>{formatPrice(product.original_price)}</span>}
               {product.discount_percent > 0 && <span style={s.discount}>{product.discount_percent}% OFF</span>}
             </div>
 

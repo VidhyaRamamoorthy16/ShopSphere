@@ -20,7 +20,7 @@ export default function Wishlist() {
     setLoading(true)
     try {
       const data = await api.get('/api/wishlist')
-      setItems(data.items || [])
+      setItems(data.wishlist || data.items || [])
     } catch (e) {} finally { setLoading(false) }
   }
 
@@ -42,7 +42,7 @@ export default function Wishlist() {
     empty: { textAlign: 'center', padding: '80px 20px' },
     emptyTitle: { fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 700, marginBottom: 12 },
     emptySub: { fontSize: 14, color: 'var(--text2)', marginBottom: 24 },
-    emptyBtn: { background: 'var(--violet)', color: '#fff', border: 'none', borderRadius: 10, padding: '14px 28px', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
+    emptyBtn: { background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 10, padding: '14px 28px', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
   }
 
   if (!api.isLoggedIn()) return (

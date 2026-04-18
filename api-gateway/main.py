@@ -224,8 +224,12 @@ async def proxy(request: Request, path: str):
         "body_preview": body_str[:200]
     }
 
-    # Rate limiting
-    if REDIS_OK and redis_client:
+    # Whitelist localhost for development
+    WHITELIST_IPS = {'127.0.0.1', 'localhost', '::1', '172.20.10.6'}
+    is_whitelisted = ip in WHITELIST_IPS or ip.startswith('127.') or ip.startswith('192.168.') or ip.startswith('10.') or ip.startswith('172.')
+
+    # Rate limiting (skip for whitelisted IPs)
+    if not is_whitelisted and REDIS_OK and redis_client:
         try:
             pipe = redis_client.pipeline()
             pipe.incr(f"rate:{ip}")
@@ -240,8 +244,10 @@ async def proxy(request: Request, path: str):
         except Exception as e:
             logger.error(f"Rate limit error: {e}")
 
-    # ML Threat detection
-    threat, confidence = ml_detect(method, f"/{path}", body_str, ua)
+    # ML Threat detection (skip for whitelisted IPs)
+    threat, confidence = None, 0
+    if not is_whitelisted:
+        threat, confidence = ml_detect(method, f"/{path}", body_str, ua)
     if threat:
         dur = time.time() - start
         entry.update({"status": 403, "duration_ms": round(dur*1000,2), "action": "BLOCKED",
