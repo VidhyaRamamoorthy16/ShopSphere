@@ -5,7 +5,7 @@
 #  Starts all 5 services in correct order
 # ————————————————————————————————————————
 
-PROJECT="/Users/deekshith/VScode/Intelligent API project"
+PROJECT="$(cd "$(dirname "$0")" && pwd)"
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
