@@ -21,7 +21,7 @@ echo -e "  ${BOLD}5${NC} — Open all browser tabs"
 echo ""
 read -p "Enter choice (1-5): " choice
 
-PROJECT="/Users/deekshith/VScode/Intelligent API project"
+PROJECT="$(cd "$(dirname "$0")" && pwd)"
 
 case $choice in
   1)
