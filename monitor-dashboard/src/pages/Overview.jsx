@@ -24,7 +24,7 @@ const COLORS = {
   teal: '#00D4AA'
 }
 
-const BASE = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
+const BASE = import.meta.env.VITE_MONITOR_URL || (import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000')
 
 const downloadFromAPI = async (endpoint, filename, type) => {
   try {

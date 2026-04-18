@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 
-const MONITOR = 'http://localhost:3000'
+const MONITOR = (import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000')
 
 const METHOD_COLORS = {
   GET: { bg: '#e3f2fd', color: '#0c447c' },

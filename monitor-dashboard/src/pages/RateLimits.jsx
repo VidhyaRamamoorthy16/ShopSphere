@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-const MONITOR = 'http://localhost:3000'
+const MONITOR = (import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000')
 
 export default function RateLimits() {
   const [data, setData] = useState({ active: [], blocked_ips: [], historical: [], total_blocked_ips: 0 })
