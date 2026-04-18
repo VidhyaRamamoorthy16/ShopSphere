@@ -264,7 +264,8 @@ async def proxy(request: Request, path: str):
     # Proxy to backend
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            headers = {k: v for k, v in request.headers.items() if k.lower() not in ['host','content-length']}
+            headers = {k: v for k, v in request.headers.items() if k.lower() not in ['host','content-length','accept-encoding']}
+            headers['Accept-Encoding'] = 'identity'
             resp = await client.request(method=method, url=f"{BACKEND_URL}/{path}",
                                         headers=headers, content=body_bytes,
                                         params=dict(request.query_params))
