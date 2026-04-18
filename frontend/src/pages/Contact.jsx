@@ -23,8 +23,6 @@ export default function Contact() {
   }
 
   const inp = { width: '100%', border: '1.5px solid #e5e7eb', borderRadius: 10, padding: '11px 14px', fontSize: 14, color: '#111827', outline: 'none', fontFamily: "'Inter',sans-serif", background: '#fff', transition: 'border-color 0.2s' }
-    }, 1500);
-  };
 
   return (
     <div className="bg-page min-h-screen pb-16 relative overflow-hidden">

@@ -24,7 +24,7 @@ const COLORS = {
   teal: '#00D4AA'
 }
 
-const BASE = 'http://localhost:3000'
+const BASE = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
 
 export default function SystemHealth() {
   const [healthData, setHealthData] = useState([])
