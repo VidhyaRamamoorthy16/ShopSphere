@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, NavLink, useLocation } from 'react-router-dom'
+import { Routes, Route, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import Overview from './pages/Overview'
 import LiveRequests from './pages/LiveRequests'
 import RateLimits from './pages/RateLimits'
@@ -38,6 +38,7 @@ const navItems = [
 export default function App() {
   const [time, setTime] = useState(new Date())
   const location = useLocation()
+  const navigate = useNavigate()
   const pageTitle = navItems.find(n => n.path === location.pathname)?.label || 'Overview'
 
   useEffect(() => {
@@ -81,7 +82,7 @@ export default function App() {
         <div style={S.topbar}>
           <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
             <div style={S.pageTitle}>{pageTitle}</div>
-            <div style={S.liveBadge}><div style={S.liveDot}></div> LIVE</div>
+            <div style={S.liveBadge}><div style={S.liveDot} /> LIVE</div>
           </div>
           <div style={{fontFamily:'JetBrains Mono, monospace', fontSize:'13px', color:'#8888AA'}}>
             {time.toLocaleTimeString('en-GB')}
@@ -94,6 +95,54 @@ export default function App() {
           <Route path="/threats" element={<ThreatDetection />} />
           <Route path="/health" element={<SystemHealth />} />
         </Routes>
+      </div>
+      
+      {/* Mobile Bottom Navigation */}
+      <div
+        id="mobile-bottom-nav"
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '60px',
+          background: '#1A1A2E',
+          borderTop: '1px solid #2D2D4E',
+          display: 'none',
+          alignItems: 'center',
+          justifyContent: 'space-around',
+          zIndex: 1000,
+          paddingBottom: 'env(safe-area-inset-bottom)'
+        }}
+      >
+        {[
+          { path: '/', label: 'Overview', icon: '⊞' },
+          { path: '/live', label: 'Live', icon: '⚡' },
+          { path: '/rate-limits', label: 'Limits', icon: '🛡' },
+          { path: '/threats', label: 'Threats', icon: '⚠' },
+          { path: '/health', label: 'Health', icon: '♥' },
+        ].map(tab => (
+          <div
+            key={tab.path}
+            onClick={() => navigate(tab.path)}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              height: '100%',
+              cursor: 'pointer',
+              color: location.pathname === tab.path ? '#6C63FF' : '#8888AA',
+              fontSize: '10px',
+              gap: '2px',
+              minWidth: '44px'
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>{tab.icon}</span>
+            <span>{tab.label}</span>
+          </div>
+        ))}
       </div>
     </div>
   )

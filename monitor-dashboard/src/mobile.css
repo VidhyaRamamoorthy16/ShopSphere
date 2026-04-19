@@ -1,0 +1,82 @@
+/* ── Mobile overrides — desktop styles untouched ── */
+@media (max-width: 768px) {
+
+  /* Hide sidebar on mobile */
+  div[style*="width:260px"],
+  div[style*="width: 260px"] {
+    display: none !important;
+  }
+
+  /* Main content takes full width */
+  div[style*="flex:1"],
+  div[style*="flex: 1"] {
+    width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* 4-col stat grids → 2 cols */
+  div[style*="repeat(4,1fr)"],
+  div[style*="repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* 2-col chart grids → 1 col */
+  div[style*="1fr 1fr"],
+  div[style*="1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tables scroll horizontally */
+  table {
+    min-width: 600px;
+  }
+  div:has(> table) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Top bar font smaller */
+  div[style*="fontSize:20px"],
+  div[style*="fontSize: 20px"] {
+    font-size: 16px !important;
+  }
+
+  /* Reduce card padding */
+  div[style*="padding:20px"],
+  div[style*="padding: 20px"] {
+    padding: 12px !important;
+  }
+
+  /* Big numbers smaller */
+  div[style*="fontSize:32px"],
+  div[style*="fontSize: 32px"] {
+    font-size: 22px !important;
+  }
+
+  /* Export buttons stack */
+  div:has(> button + button + button) {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  div:has(> button + button + button) button {
+    flex: 1 1 auto !important;
+    min-width: 120px !important;
+  }
+
+  /* Charts full width */
+  .recharts-wrapper {
+    width: 100% !important;
+  }
+}
+
+/* Bottom nav for mobile */
+@media (max-width: 768px) {
+  #mobile-bottom-nav {
+    display: flex !important;
+  }
+}
+@media (min-width: 769px) {
+  #mobile-bottom-nav {
+    display: none !important;
+  }
+}
