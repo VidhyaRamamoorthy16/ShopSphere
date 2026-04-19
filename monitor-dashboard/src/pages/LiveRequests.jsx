@@ -57,7 +57,8 @@ export default function LiveRequests() {
 
     const connectWS = () => {
       try {
-        const ws = new WebSocket('ws://localhost:3000/ws')
+        const wsUrl = MONITOR.replace('http://', 'ws://').replace('https://', 'wss://')
+        const ws = new WebSocket(`${wsUrl}/ws`)
         wsRef.current = ws
         ws.onopen = () => {
           setWsConnected(true)

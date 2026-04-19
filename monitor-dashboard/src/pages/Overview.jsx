@@ -127,8 +127,8 @@ export default function Overview() {
   useEffect(() => {
     const fetchWeekStats = async () => {
       try {
-        await fetch('http://localhost:3000/monitor/stats/hourly')
-        const res = await fetch('http://localhost:3000/monitor/stats/summary')
+        await fetch(`${BASE}/monitor/stats/hourly`)
+        const res = await fetch(`${BASE}/monitor/stats/summary`)
         const d = await res.json()
         setWeekStats(d)
       } catch (e) {}

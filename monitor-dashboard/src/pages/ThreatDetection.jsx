@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
+const MONITOR = (import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000')
+
 export default function ThreatDetection() {
   const [threats, setThreats] = useState([]);
   const [stats, setStats] = useState({ total: 0 });
@@ -7,7 +9,7 @@ export default function ThreatDetection() {
   useEffect(() => {
     const fetchThreats = async () => {
       try {
-        const res = await fetch('http://localhost:3000/monitor/threats/live');
+        const res = await fetch(`${MONITOR}/monitor/threats/live`);
         const data = await res.json();
         setThreats(data.threats || []);
         setStats({ total: data.total || 0 });
