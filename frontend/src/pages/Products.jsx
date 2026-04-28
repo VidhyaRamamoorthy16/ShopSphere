@@ -29,23 +29,42 @@ export default function Products() {
     const params = new URLSearchParams()
     if (filters.category && filters.category !== '') params.set('category', filters.category)
     if (filters.search) params.set('search', filters.search)
-    if (filters.brand) params.set('brand', filters.brand)
+    if (filters.sort) params.set('sort', filters.sort)
     if (filters.min_price) params.set('min_price', filters.min_price)
     if (filters.max_price) params.set('max_price', filters.max_price)
-    if (filters.sort) params.set('sort', filters.sort)
     if (filters.min_rating) params.set('min_rating', filters.min_rating)
     params.set('limit', '50')
-    params.set('page', '1')
 
-    const response = await fetch(`${API_BASE}/api/products?${params}`, {
-      headers: { 'Content-Type': 'application/json' }
-    })
-    const data = await response.json()
-    setProducts(data.products || data || [])
-    setTotal(data.total || (data.products || data || []).length)
+    // Try gateway first, fallback to backend directly
+    let data = null
+    try {
+      const res = await fetch(`http://localhost:5001/api/products?${params}`, {
+        headers: { 'Content-Type': 'application/json' }
+      })
+      if (res.ok) {
+        data = await res.json()
+      }
+    } catch (gatewayErr) {
+      console.log('Gateway not available, trying backend directly...')
+      const res = await fetch(`http://localhost:8000/api/products?${params}`, {
+        headers: { 'Content-Type': 'application/json' }
+      })
+      if (res.ok) {
+        data = await res.json()
+      }
+    }
+
+    if (data) {
+      const products = data.products || data || []
+      setProducts(Array.isArray(products) ? products : [])
+      setTotal(data.total || products.length || 0)
+    } else {
+      setProducts([])
+      setTotal(0)
+    }
   } catch (err) {
     console.error('Products fetch error:', err)
-    setError('Failed to load products. Please refresh.')
+    setError('Could not load products. Make sure backend is running on port 8000.')
     setProducts([])
   } finally {
     setLoading(false)

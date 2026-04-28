@@ -1,15 +1,9 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001'
 const MONITOR_BASE = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
 
-const getToken = () => localStorage.getItem('token') || localStorage.getItem('shieldmart_token')
-const setToken = (token) => {
-  localStorage.setItem('token', token)
-  localStorage.setItem('shieldmart_token', token)
-}
-
 export const api = {
   get: async (endpoint) => {
-    const token = getToken()
+    const token = localStorage.getItem('token')
     const res = await fetch(`${API_BASE}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
@@ -20,7 +14,7 @@ export const api = {
     return res.json()
   },
   post: async (endpoint, body) => {
-    const token = getToken()
+    const token = localStorage.getItem('token')
     const res = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -36,7 +30,7 @@ export const api = {
     return res.json()
   },
   put: async (endpoint, body) => {
-    const token = getToken()
+    const token = localStorage.getItem('token')
     const res = await fetch(`${API_BASE}${endpoint}`, {
       method: 'PUT',
       headers: {
@@ -49,7 +43,7 @@ export const api = {
     return res.json()
   },
   delete: async (endpoint) => {
-    const token = getToken()
+    const token = localStorage.getItem('token')
     const res = await fetch(`${API_BASE}${endpoint}`, {
       method: 'DELETE',
       headers: {
@@ -60,16 +54,12 @@ export const api = {
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     return res.json()
   },
-  isLoggedIn: () => !!getToken(),
-  getToken,
-  setToken,
-  clearToken: () => { localStorage.removeItem('token'); localStorage.removeItem('shieldmart_token'); localStorage.removeItem('user') },
-  getUser: () => {
-    try {
-      return JSON.parse(localStorage.getItem('user') || 'null')
-    } catch {
-      return null
-    }
+  isLoggedIn: () => !!localStorage.getItem('token'),
+  getToken: () => localStorage.getItem('token'),
+  setToken: (token) => localStorage.setItem('token', token),
+  clearToken: () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
   }
 }
 
