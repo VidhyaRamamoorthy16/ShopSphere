@@ -60,6 +60,13 @@ export const api = {
   clearToken: () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+  },
+  getUser: () => {
+    try {
+      return JSON.parse(localStorage.getItem('user') || 'null')
+    } catch {
+      return null
+    }
   }
 }
 
