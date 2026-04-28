@@ -241,59 +241,155 @@ app.get('/api/categories', async (req, res) => {
   }
 })
 
+// ══════════════════════════════════════════
+// CART ROUTES
+// ══════════════════════════════════════════
+
+// GET cart
 app.get('/api/cart', authMiddleware, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('cart')
-      .select('*, products(*)')
+      .select(`
+        id,
+        quantity,
+        product_id,
+        products (
+          id, name, price, original_price, discount_percent,
+          image_url, brand, category, stock, is_assured
+        )
+      `)
       .eq('user_id', req.user.id)
+      .order('created_at', { ascending: false })
+
     if (error) throw error
-    res.json({ cart: data })
-  } catch (e) {
-    res.status(500).json({ error: e.message })
+    res.json({ cart: data || [], items: data || [] })
+  } catch (err) {
+    console.error('Cart GET error:', err)
+    res.status(500).json({ error: err.message })
   }
 })
 
+// POST add to cart
 app.post('/api/cart', authMiddleware, async (req, res) => {
   try {
-    const { product_id, quantity = 1 } = req.body
-    if (!product_id) return res.status(400).json({ error: 'product_id required' })
+    let { product_id, quantity } = req.body
+    quantity = parseInt(quantity) || 1
+
+    if (!product_id) {
+      return res.status(400).json({ error: 'product_id is required' })
+    }
+
+    // Convert product_id to string for consistency
+    const pid = String(product_id)
+
+    // Check if product exists
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('id, name, stock')
+      .eq('id', pid)
+      .single()
+
+    if (productError || !product) {
+      return res.status(404).json({ error: 'Product not found' })
+    }
+
+    // Check if already in cart
+    const { data: existing, error: existingError } = await supabase
+      .from('cart')
+      .select('id, quantity')
+      .eq('user_id', req.user.id)
+      .eq('product_id', pid)
+      .maybeSingle()
+
+    if (existing) {
+      // Update quantity
+      const { data, error } = await supabase
+        .from('cart')
+        .update({ quantity: existing.quantity + quantity, updated_at: new Date().toISOString() })
+        .eq('id', existing.id)
+        .select()
+
+      if (error) throw error
+      return res.json({ success: true, cart: data[0], message: 'Cart updated', action: 'updated' })
+    }
+
+    // Insert new item
     const { data, error } = await supabase
       .from('cart')
-      .upsert(
-        { user_id: req.user.id, product_id, quantity },
-        { onConflict: 'user_id,product_id' }
-      )
-      .select('*, products(*)')
-      .single()
+      .insert([{
+        user_id: req.user.id,
+        product_id: pid,
+        quantity: quantity
+      }])
+      .select()
+
     if (error) throw error
-    res.json({ item: data, message: 'Added to cart' })
-  } catch (e) {
-    res.status(500).json({ error: e.message })
+    res.json({ success: true, cart: data[0], message: 'Added to cart', action: 'added' })
+  } catch (err) {
+    console.error('Cart POST error:', err)
+    res.status(500).json({ error: err.message || 'Failed to add to cart' })
   }
 })
 
-app.put('/api/cart/:product_id', authMiddleware, async (req, res) => {
+// PUT update cart item quantity
+app.put('/api/cart/:id', authMiddleware, async (req, res) => {
   try {
     const { quantity } = req.body
-    if (quantity < 1) {
-      await supabase.from('cart')
-        .delete()
+    const qty = parseInt(quantity)
+
+    if (!qty || qty < 1) {
+      // Delete if quantity is 0
+      await supabase.from('cart').delete()
+        .eq('id', req.params.id)
         .eq('user_id', req.user.id)
-        .eq('product_id', req.params.product_id)
-      return res.json({ message: 'Item removed' })
+      return res.json({ success: true, message: 'Item removed' })
     }
+
     const { data, error } = await supabase
       .from('cart')
-      .update({ quantity })
+      .update({ quantity: qty })
+      .eq('id', req.params.id)
       .eq('user_id', req.user.id)
-      .eq('product_id', req.params.product_id)
-      .select('*, products(*)')
-      .single()
+      .select()
+
     if (error) throw error
-    res.json({ item: data })
-  } catch (e) {
-    res.status(500).json({ error: e.message })
+    res.json({ success: true, cart: data[0], message: 'Quantity updated' })
+  } catch (err) {
+    console.error('Cart PUT error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// DELETE remove from cart
+app.delete('/api/cart/:id', authMiddleware, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('cart')
+      .delete()
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+
+    if (error) throw error
+    res.json({ success: true, message: 'Item removed from cart' })
+  } catch (err) {
+    console.error('Cart DELETE error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// DELETE clear entire cart
+app.delete('/api/cart', authMiddleware, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('cart')
+      .delete()
+      .eq('user_id', req.user.id)
+
+    if (error) throw error
+    res.json({ success: true, message: 'Cart cleared' })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
   }
 })
 
@@ -384,37 +480,70 @@ app.delete('/api/products/:id', authMiddleware, async (req, res) => {
   }
 })
 
-// FEATURE 1: Wishlist
+// WISHLIST ROUTES
+// ══════════════════════════════════════════
+
+// GET wishlist
 app.get('/api/wishlist', authMiddleware, async (req, res) => {
   try {
     const { data, error } = await supabase
-      .from('wishlist').select('*, products(*)').eq('user_id', req.user.id)
+      .from('wishlist')
+      .select(`
+        id,
+        product_id,
+        products (
+          id, name, price, original_price, discount_percent,
+          image_url, brand, category, stock, rating, review_count, is_assured
+        )
+      `)
+      .eq('user_id', req.user.id)
+      .order('created_at', { ascending: false })
+
     if (error) throw error
-    res.json({ wishlist: data })
-  } catch (e) { res.status(500).json({ error: e.message }) }
+    res.json({ wishlist: data || [] })
+  } catch (err) {
+    console.error('Wishlist GET error:', err)
+    res.status(500).json({ error: err.message })
+  }
 })
 
+// POST toggle wishlist (add or remove)
 app.post('/api/wishlist', authMiddleware, async (req, res) => {
   try {
     const { product_id } = req.body
-    const { data: existing } = await supabase
-      .from('wishlist').select('id').eq('user_id', req.user.id).eq('product_id', product_id).single()
-    if (existing) {
-      await supabase.from('wishlist').delete().eq('id', existing.id)
-      return res.json({ message: 'Removed from wishlist', action: 'removed' })
+    if (!product_id) {
+      return res.status(400).json({ error: 'product_id is required' })
     }
-    const { data, error } = await supabase
-      .from('wishlist').insert({ user_id: req.user.id, product_id }).select('*, products(*)').single()
-    if (error) throw error
-    res.json({ item: data, message: 'Added to wishlist', action: 'added' })
-  } catch (e) { res.status(500).json({ error: e.message }) }
-})
 
-app.delete('/api/wishlist/:product_id', authMiddleware, async (req, res) => {
-  try {
-    await supabase.from('wishlist').delete().eq('user_id', req.user.id).eq('product_id', req.params.product_id)
-    res.json({ message: 'Removed from wishlist' })
-  } catch (e) { res.status(500).json({ error: e.message }) }
+    const pid = String(product_id)
+
+    // Check if already wishlisted
+    const { data: existing } = await supabase
+      .from('wishlist')
+      .select('id')
+      .eq('user_id', req.user.id)
+      .eq('product_id', pid)
+      .maybeSingle()
+
+    if (existing) {
+      // Remove from wishlist
+      await supabase.from('wishlist').delete()
+        .eq('id', existing.id)
+      return res.json({ success: true, action: 'removed', wishlisted: false, message: 'Removed from wishlist' })
+    }
+
+    // Add to wishlist
+    const { data, error } = await supabase
+      .from('wishlist')
+      .insert([{ user_id: req.user.id, product_id: pid }])
+      .select()
+
+    if (error) throw error
+    res.json({ success: true, action: 'added', wishlisted: true, message: 'Added to wishlist', data: data[0] })
+  } catch (err) {
+    console.error('Wishlist POST error:', err)
+    res.status(500).json({ error: err.message || 'Failed to update wishlist' })
+  }
 })
 
 // POST /api/wishlist/toggle (alternate endpoint)
@@ -423,22 +552,40 @@ app.post('/api/wishlist/toggle', authMiddleware, async (req, res) => {
     const { product_id } = req.body
     if (!product_id) return res.status(400).json({ error: 'product_id required' })
 
+    const pid = String(product_id)
+
     const { data: existing } = await supabase
       .from('wishlist')
       .select('id')
       .eq('user_id', req.user.id)
-      .eq('product_id', product_id)
+      .eq('product_id', pid)
       .single()
 
     if (existing) {
       await supabase.from('wishlist').delete()
-        .eq('user_id', req.user.id)
-        .eq('product_id', product_id)
-      res.json({ action: 'removed', wishlisted: false })
-    } else {
-      await supabase.from('wishlist').insert([{ user_id: req.user.id, product_id }])
-      res.json({ action: 'added', wishlisted: true })
+        .eq('id', existing.id)
+      return res.json({ success: true, action: 'removed', wishlisted: false })
     }
+
+    await supabase.from('wishlist').insert([{ user_id: req.user.id, product_id: pid }])
+    res.json({ success: true, action: 'added', wishlisted: true })
+  } catch (err) {
+    console.error('Wishlist toggle error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// DELETE remove specific wishlist item
+app.delete('/api/wishlist/:id', authMiddleware, async (req, res) => {
+  try {
+    const { error } = await supabase
+      .from('wishlist')
+      .delete()
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+
+    if (error) throw error
+    res.json({ success: true, message: 'Removed from wishlist' })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }

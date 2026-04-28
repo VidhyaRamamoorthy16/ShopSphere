@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { API_BASE } from '../config/api'
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001'
 
 const CartContext = createContext({
   cartCount: 0,
@@ -12,38 +13,53 @@ export function CartProvider({ children }) {
   const [cartCount, setCartCount] = useState(0)
   const [wishlistCount, setWishlistCount] = useState(0)
 
-  const getToken = () => localStorage.getItem('token') || localStorage.getItem('shieldmart_token')
-  const isLoggedIn = () => !!getToken()
   const getHeaders = () => ({
     'Content-Type': 'application/json',
-    ...(getToken() && { 'Authorization': `Bearer ${getToken()}` })
+    ...(localStorage.getItem('token') && {
+      'Authorization': `Bearer ${localStorage.getItem('token')}` 
+    })
   })
 
+  const isLoggedIn = () => !!localStorage.getItem('token')
+
   const refreshCart = useCallback(async () => {
-    if (!isLoggedIn()) { setCartCount(0); return }
+    if (!isLoggedIn()) {
+      setCartCount(0)
+      return
+    }
     try {
       const res = await fetch(`${API_BASE}/api/cart`, { headers: getHeaders() })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
       const items = data.cart || data.items || []
-      const count = items.reduce((sum, item) => sum + (item.quantity || 1), 0)
-      setCartCount(count)
-    } catch (e) { setCartCount(0) }
+      const total = items.reduce((sum, item) => sum + (parseInt(item.quantity) || 1), 0)
+      setCartCount(total)
+    } catch (err) {
+      console.error('Cart refresh error:', err)
+      setCartCount(0)
+    }
   }, [])
 
   const refreshWishlist = useCallback(async () => {
-    if (!isLoggedIn()) { setWishlistCount(0); return }
+    if (!isLoggedIn()) {
+      setWishlistCount(0)
+      return
+    }
     try {
       const res = await fetch(`${API_BASE}/api/wishlist`, { headers: getHeaders() })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
-      const items = data.wishlist || []
-      setWishlistCount(items.length)
-    } catch (e) { setWishlistCount(0) }
+      setWishlistCount((data.wishlist || []).length)
+    } catch (err) {
+      console.error('Wishlist refresh error:', err)
+      setWishlistCount(0)
+    }
   }, [])
 
   useEffect(() => {
     refreshCart()
     refreshWishlist()
-    // Refresh every 30 seconds to keep counts accurate
+    // Refresh every 30 seconds
     const interval = setInterval(() => {
       refreshCart()
       refreshWishlist()

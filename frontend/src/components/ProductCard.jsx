@@ -29,22 +29,45 @@ export default function ProductCard({ product: p }) {
 
   const addToCart = async (e) => {
     e.stopPropagation()
+
     if (!api.isLoggedIn()) {
       toast.info('Please login to add items to cart')
       navigate('/login')
       return
     }
+
     if (adding || added) return
     setAdding(true)
+
     try {
-      await api.post('/api/cart', { product_id: p.id, quantity: 1 })
+      const response = await fetch(
+        `${API_BASE}/api/cart`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          },
+          body: JSON.stringify({
+            product_id: String(p.id),
+            quantity: 1
+          })
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || `HTTP ${response.status}`)
+      }
+
       setAdded(true)
-      toast.success(`${p.name.substring(0, 25)}... added to cart!`)
-      refreshCart()
+      toast.success(`✓ ${p.name.substring(0, 28)}... added to cart!`)
+      if (refreshCart) refreshCart()
       setTimeout(() => setAdded(false), 2500)
     } catch (err) {
-      toast.error('Failed to add to cart. Please try again.')
-      console.error('Cart error:', err)
+      console.error('Add to cart error:', err)
+      toast.error(`Cart error: ${err.message}`)
     } finally {
       setAdding(false)
     }
@@ -52,34 +75,47 @@ export default function ProductCard({ product: p }) {
 
   const toggleWishlist = async (e) => {
     e.stopPropagation()
+
     if (!api.isLoggedIn()) {
       toast.info('Please login to save items')
       navigate('/login')
       return
     }
+
     if (wishlistLoading) return
     setWishlistLoading(true)
     const prev = wishlisted
     setWishlisted(!prev)
+
     try {
-      const data = await api.post('/api/wishlist/toggle', { product_id: p.id })
+      const response = await fetch(
+        `${API_BASE}/api/wishlist`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}` 
+          },
+          body: JSON.stringify({
+            product_id: String(p.id)
+          })
+        }
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`)
+      }
+
       const isNowAdded = data.action === 'added' || data.wishlisted === true
       setWishlisted(isNowAdded)
       toast.success(isNowAdded ? '❤️ Added to wishlist' : 'Removed from wishlist')
-      refreshWishlist()
+      if (refreshWishlist) refreshWishlist()
     } catch (err) {
       setWishlisted(prev)
-      // Try alternate endpoint
-      try {
-        const data2 = await api.post('/api/wishlist', { product_id: p.id })
-        const isNow = data2.action === 'added' || data2.wishlisted === true
-        setWishlisted(isNow)
-        toast.success(isNow ? '❤️ Added to wishlist' : 'Removed from wishlist')
-        refreshWishlist()
-      } catch (err2) {
-        setWishlisted(prev)
-        toast.error('Failed to update wishlist')
-      }
+      console.error('Wishlist error:', err)
+      toast.error(`Wishlist error: ${err.message}`)
     } finally {
       setWishlistLoading(false)
     }
