@@ -4,6 +4,7 @@ import { api, API_BASE } from '../config/api'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ProductCard from '../components/ProductCard'
+import { defaultProducts } from '../data/defaultProducts'
 
 export default function Products() {
   const navigate = useNavigate()
@@ -59,13 +60,17 @@ export default function Products() {
       setProducts(Array.isArray(products) ? products : [])
       setTotal(data.total || products.length || 0)
     } else {
-      setProducts([])
-      setTotal(0)
+      // Fallback to default products for demo
+      console.log('Using default products for demo')
+      setProducts(defaultProducts)
+      setTotal(defaultProducts.length)
     }
   } catch (err) {
     console.error('Products fetch error:', err)
-    setError('Could not load products. Make sure backend is running on port 8000.')
-    setProducts([])
+    setError('Could not load products. Using demo data instead.')
+    // Fallback to default products for demo
+    setProducts(defaultProducts)
+    setTotal(defaultProducts.length)
   } finally {
     setLoading(false)
   }
