@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'https://shopsphere-gateway.onrender.com'
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const MONITOR_BASE = import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com'
 
 export const api = {

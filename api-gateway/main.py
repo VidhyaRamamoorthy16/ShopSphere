@@ -9,6 +9,7 @@ import numpy as np
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from middleware.auth import verify_token
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)s | %(message)s')
 logger = logging.getLogger("Gateway")
@@ -216,6 +217,23 @@ async def proxy(request: Request, path: str):
     ua = request.headers.get("user-agent", "")
     body_bytes = await request.body()
     body_str = body_bytes.decode('utf-8', errors='ignore')
+
+    # Skip authentication for public endpoints
+    public_endpoints = ['health', 'ml/metrics', 'api/auth/login', 'api/auth/register', 'api/products']
+    if path in public_endpoints:
+        pass  # Skip authentication for public endpoints
+    else:
+        # Verify JWT token for protected endpoints
+        try:
+            user_payload = await verify_token(request)
+            # Add user info to headers for backend
+            request.state.user = user_payload
+        except Exception as e:
+            return Response(
+                content=json.dumps({"error": "Authentication required. Please login."}),
+                status_code=401, 
+                media_type="application/json"
+            )
 
     entry = {
         "ip": ip, "method": method, "path": f"/{path}",
