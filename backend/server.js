@@ -318,7 +318,7 @@ app.post('/api/cart', authenticateToken, async (req, res) => {
       // Update quantity
       const { data, error } = await supabase
         .from('cart')
-        .update({ quantity: existing.quantity + quantity, updated_at: new Date().toISOString() })
+        .update({ quantity: existing.quantity + quantity })
         .eq('id', existing.id)
         .select()
 
