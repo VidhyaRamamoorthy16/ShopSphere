@@ -5,6 +5,11 @@ import { useCart } from '../context/CartContext'
 import { toast } from './Toast'
 
 export default function ProductCard({ product: p }) {
+  // Guard clause - if product is undefined, don't render
+  if (!p) {
+    return null
+  }
+
   const navigate = useNavigate()
   const { refreshCart, refreshWishlist } = useCart()
   const [hovered, setHovered] = useState(false)
@@ -15,7 +20,7 @@ export default function ProductCard({ product: p }) {
 
   useEffect(() => {
     const checkWishlist = async () => {
-      if (!api.isLoggedIn()) return
+      if (!api.isLoggedIn() || !p?.id) return
       try {
         const data = await api.get('/api/wishlist')
         const items = data.wishlist || data || []
@@ -25,7 +30,7 @@ export default function ProductCard({ product: p }) {
       } catch (e) { console.log('wishlist check failed', e) }
     }
     checkWishlist()
-  }, [p.id])
+  }, [p?.id])
 
   const addToCart = async (e) => {
     e.stopPropagation()
@@ -33,6 +38,11 @@ export default function ProductCard({ product: p }) {
     if (!api.isLoggedIn()) {
       toast.info('Please login to add items to cart')
       navigate('/login')
+      return
+    }
+
+    if (!p?.id) {
+      toast.error('Product not available')
       return
     }
 
@@ -62,7 +72,7 @@ export default function ProductCard({ product: p }) {
       }
 
       setAdded(true)
-      toast.success(`✓ ${p.name.substring(0, 28)}... added to cart!`)
+      toast.success(`✓ ${p.name?.substring(0, 28) || 'Product'}... added to cart!`)
       if (refreshCart) refreshCart()
       setTimeout(() => setAdded(false), 2500)
     } catch (err) {
@@ -79,6 +89,11 @@ export default function ProductCard({ product: p }) {
     if (!api.isLoggedIn()) {
       toast.info('Please login to save items')
       navigate('/login')
+      return
+    }
+
+    if (!p?.id) {
+      toast.error('Product not available')
       return
     }
 
