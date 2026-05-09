@@ -110,14 +110,26 @@ const emailTemplates = {
 
 const resetTokens = new Map()
 
-const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1]
-  if (!token) return res.status(401).json({ error: 'No token' })
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7)
+    : null
+
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required. Please login.' })
+  }
+
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET)
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'shopsphere_jwt_super_secret_2026'
+    )
+    req.user = decoded
     next()
-  } catch {
-    res.status(401).json({ error: 'Invalid token' })
+  } catch (err) {
+    console.error('JWT verify error:', err.message)
+    return res.status(403).json({ error: 'Invalid or expired token. Please login again.' })
   }
 }
 
@@ -184,7 +196,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 })
 
-app.get('/api/auth/me', authMiddleware, async (req, res) => {
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
@@ -246,7 +258,7 @@ app.get('/api/categories', async (req, res) => {
 // ══════════════════════════════════════════
 
 // GET cart
-app.get('/api/cart', authMiddleware, async (req, res) => {
+app.get('/api/cart', authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('cart')
@@ -271,7 +283,7 @@ app.get('/api/cart', authMiddleware, async (req, res) => {
 })
 
 // POST add to cart
-app.post('/api/cart', authMiddleware, async (req, res) => {
+app.post('/api/cart', authenticateToken, async (req, res) => {
   try {
     let { product_id, quantity } = req.body
     quantity = parseInt(quantity) || 1
@@ -333,7 +345,7 @@ app.post('/api/cart', authMiddleware, async (req, res) => {
 })
 
 // PUT update cart item quantity
-app.put('/api/cart/:id', authMiddleware, async (req, res) => {
+app.put('/api/cart/:id', authenticateToken, async (req, res) => {
   try {
     const { quantity } = req.body
     const qty = parseInt(quantity)
@@ -362,7 +374,7 @@ app.put('/api/cart/:id', authMiddleware, async (req, res) => {
 })
 
 // DELETE remove from cart
-app.delete('/api/cart/:id', authMiddleware, async (req, res) => {
+app.delete('/api/cart/:id', authenticateToken, async (req, res) => {
   try {
     const { error } = await supabase
       .from('cart')
@@ -379,7 +391,7 @@ app.delete('/api/cart/:id', authMiddleware, async (req, res) => {
 })
 
 // DELETE clear entire cart
-app.delete('/api/cart', authMiddleware, async (req, res) => {
+app.delete('/api/cart', authenticateToken, async (req, res) => {
   try {
     const { error } = await supabase
       .from('cart')
@@ -393,7 +405,7 @@ app.delete('/api/cart', authMiddleware, async (req, res) => {
   }
 })
 
-app.delete('/api/cart/:product_id', authMiddleware, async (req, res) => {
+app.delete('/api/cart/:product_id', authenticateToken, async (req, res) => {
   try {
     await supabase.from('cart')
       .delete()
@@ -405,7 +417,7 @@ app.delete('/api/cart/:product_id', authMiddleware, async (req, res) => {
   }
 })
 
-app.post('/api/orders', authMiddleware, async (req, res) => {
+app.post('/api/orders', authenticateToken, async (req, res) => {
   try {
     const { shipping_address, payment_method } = req.body
     const { data: cartItems } = await supabase
@@ -434,7 +446,7 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
   }
 })
 
-app.get('/api/orders', authMiddleware, async (req, res) => {
+app.get('/api/orders', authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('orders')
@@ -449,7 +461,7 @@ app.get('/api/orders', authMiddleware, async (req, res) => {
 })
 
 // Admin — add product
-app.post('/api/products', authMiddleware, async (req, res) => {
+app.post('/api/products', authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase.from('products').insert(req.body).select().single()
     if (error) throw error
@@ -460,7 +472,7 @@ app.post('/api/products', authMiddleware, async (req, res) => {
 })
 
 // Admin — update product
-app.put('/api/products/:id', authMiddleware, async (req, res) => {
+app.put('/api/products/:id', authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase.from('products').update(req.body).eq('id', req.params.id).select().single()
     if (error) throw error
@@ -471,7 +483,7 @@ app.put('/api/products/:id', authMiddleware, async (req, res) => {
 })
 
 // Admin — delete product
-app.delete('/api/products/:id', authMiddleware, async (req, res) => {
+app.delete('/api/products/:id', authenticateToken, async (req, res) => {
   try {
     await supabase.from('products').delete().eq('id', req.params.id)
     res.json({ message: 'Product deleted' })
@@ -484,7 +496,7 @@ app.delete('/api/products/:id', authMiddleware, async (req, res) => {
 // ══════════════════════════════════════════
 
 // GET wishlist
-app.get('/api/wishlist', authMiddleware, async (req, res) => {
+app.get('/api/wishlist', authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('wishlist')
@@ -508,7 +520,7 @@ app.get('/api/wishlist', authMiddleware, async (req, res) => {
 })
 
 // POST toggle wishlist (add or remove)
-app.post('/api/wishlist', authMiddleware, async (req, res) => {
+app.post('/api/wishlist', authenticateToken, async (req, res) => {
   try {
     const { product_id } = req.body
     if (!product_id) {
@@ -547,7 +559,7 @@ app.post('/api/wishlist', authMiddleware, async (req, res) => {
 })
 
 // POST /api/wishlist/toggle (alternate endpoint)
-app.post('/api/wishlist/toggle', authMiddleware, async (req, res) => {
+app.post('/api/wishlist/toggle', authenticateToken, async (req, res) => {
   try {
     const { product_id } = req.body
     if (!product_id) return res.status(400).json({ error: 'product_id required' })
@@ -576,7 +588,7 @@ app.post('/api/wishlist/toggle', authMiddleware, async (req, res) => {
 })
 
 // DELETE remove specific wishlist item
-app.delete('/api/wishlist/:id', authMiddleware, async (req, res) => {
+app.delete('/api/wishlist/:id', authenticateToken, async (req, res) => {
   try {
     const { error } = await supabase
       .from('wishlist')
@@ -605,7 +617,7 @@ app.get('/api/products/:id/reviews', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
-app.post('/api/products/:id/reviews', authMiddleware, async (req, res) => {
+app.post('/api/products/:id/reviews', authenticateToken, async (req, res) => {
   try {
     const { rating, title, body } = req.body
     if (!rating || !body) return res.status(400).json({ error: 'Rating and review text required' })
@@ -619,7 +631,7 @@ app.post('/api/products/:id/reviews', authMiddleware, async (req, res) => {
 })
 
 // FEATURE 3: Order Tracking
-app.get('/api/orders/:id/track', authMiddleware, async (req, res) => {
+app.get('/api/orders/:id/track', authenticateToken, async (req, res) => {
   try {
     const { data: order, error } = await supabase
       .from('orders')
@@ -648,7 +660,7 @@ app.get('/api/orders/:id/track', authMiddleware, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
-app.put('/api/orders/:id/status', authMiddleware, async (req, res) => {
+app.put('/api/orders/:id/status', authenticateToken, async (req, res) => {
   try {
     const { status } = req.body
     const valid = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']
@@ -661,7 +673,7 @@ app.put('/api/orders/:id/status', authMiddleware, async (req, res) => {
 })
 
 // FEATURE 5: Coupons
-app.post('/api/coupons/validate', authMiddleware, async (req, res) => {
+app.post('/api/coupons/validate', authenticateToken, async (req, res) => {
   try {
     const { code, order_total } = req.body
     if (!code) return res.status(400).json({ error: 'Coupon code required' })
@@ -688,7 +700,7 @@ const createNotification = async (userId, title, message, type = 'info', link = 
   } catch (e) { console.error('Notification create failed:', e.message) }
 }
 
-app.get('/api/notifications', authMiddleware, async (req, res) => {
+app.get('/api/notifications', authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('notifications').select('*').eq('user_id', req.user.id)
@@ -699,14 +711,14 @@ app.get('/api/notifications', authMiddleware, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
-app.put('/api/notifications/:id/read', authMiddleware, async (req, res) => {
+app.put('/api/notifications/:id/read', authenticateToken, async (req, res) => {
   try {
     await supabase.from('notifications').update({ read: true }).eq('id', req.params.id).eq('user_id', req.user.id)
     res.json({ message: 'Marked as read' })
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
-app.put('/api/notifications/read-all', authMiddleware, async (req, res) => {
+app.put('/api/notifications/read-all', authenticateToken, async (req, res) => {
   try {
     await supabase.from('notifications').update({ read: true }).eq('user_id', req.user.id)
     res.json({ message: 'All marked as read' })
@@ -739,7 +751,7 @@ app.get('/api/products', async (req, res) => {
 })
 
 // FEATURE 9: Profile Update
-app.put('/api/auth/profile', authMiddleware, async (req, res) => {
+app.put('/api/auth/profile', authenticateToken, async (req, res) => {
   try {
     const { name, phone } = req.body
     if (!name) return res.status(400).json({ error: 'Name is required' })
@@ -751,7 +763,7 @@ app.put('/api/auth/profile', authMiddleware, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
-app.put('/api/auth/password', authMiddleware, async (req, res) => {
+app.put('/api/auth/password', authenticateToken, async (req, res) => {
   try {
     const { current_password, new_password } = req.body
     if (!current_password || !new_password) return res.status(400).json({ error: 'Both passwords required' })
@@ -766,7 +778,7 @@ app.put('/api/auth/password', authMiddleware, async (req, res) => {
 })
 
 // Modified order creation with notification
-app.post('/api/orders', authMiddleware, async (req, res) => {
+app.post('/api/orders', authenticateToken, async (req, res) => {
   try {
     const { items, total_amount, shipping_address, coupon_code } = req.body
     if (!items?.length || !shipping_address) return res.status(400).json({ error: 'Items and shipping address required' })
@@ -784,7 +796,7 @@ app.post('/api/orders', authMiddleware, async (req, res) => {
 })
 
 // FEATURE 10: Razorpay Payments
-app.post('/api/payments/create-order', authMiddleware, async (req, res) => {
+app.post('/api/payments/create-order', authenticateToken, async (req, res) => {
   try {
     const { amount } = req.body
     if (!amount || amount < 1) return res.status(400).json({ error: 'Invalid amount' })
@@ -796,7 +808,7 @@ app.post('/api/payments/create-order', authMiddleware, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
-app.post('/api/payments/verify', authMiddleware, async (req, res) => {
+app.post('/api/payments/verify', authenticateToken, async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, shipping_address, payment_method, mock } = req.body
 
@@ -857,7 +869,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
 })
 
 // PHASE 6 — Product Image Upload
-app.post('/api/upload/product-image', authMiddleware, upload.single('image'), async (req, res) => {
+app.post('/api/upload/product-image', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image provided' })
     const ext = req.file.mimetype.split('/')[1] || 'jpg'
@@ -914,7 +926,7 @@ app.get('/api/products/:id/related', async (req, res) => {
 })
 
 // Product stock update (admin)
-app.patch('/api/products/:id/stock', authMiddleware, async (req, res) => {
+app.patch('/api/products/:id/stock', authenticateToken, async (req, res) => {
   try {
     const { stock } = req.body
     const { data, error } = await supabase.from('products').update({ stock: Number(stock) }).eq('id', req.params.id).select().single()
@@ -924,7 +936,7 @@ app.patch('/api/products/:id/stock', authMiddleware, async (req, res) => {
 })
 
 // Order status update (admin)
-app.patch('/api/orders/:id/status', authMiddleware, async (req, res) => {
+app.patch('/api/orders/:id/status', authenticateToken, async (req, res) => {
   try {
     const { status } = req.body
     const valid = ['pending','confirmed','shipped','delivered','cancelled']
@@ -941,7 +953,7 @@ app.patch('/api/orders/:id/status', authMiddleware, async (req, res) => {
 })
 
 // Admin: Get all orders
-app.get('/api/orders/all', authMiddleware, async (req, res) => {
+app.get('/api/orders/all', authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase.from('orders')
       .select('*, users(name,email), order_items(quantity,price,products(name))')
