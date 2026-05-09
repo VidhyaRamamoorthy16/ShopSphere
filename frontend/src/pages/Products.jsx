@@ -39,14 +39,14 @@ export default function Products() {
     // Try gateway first, fallback to backend directly
     let data = null
     try {
-      const res = await fetch(`http://localhost:5001/api/products?${params}`, {
+      const res = await fetch(`${API_BASE}/api/products?${params}`, {
         headers: { 'Content-Type': 'application/json' }
       })
       if (res.ok) {
         data = await res.json()
       }
-    } catch (gatewayErr) {
-      console.log('Gateway not available, trying backend directly...')
+    } catch (apiErr) {
+      console.log('API not available, trying backend directly...')
       const res = await fetch(`http://localhost:8000/api/products?${params}`, {
         headers: { 'Content-Type': 'application/json' }
       })
