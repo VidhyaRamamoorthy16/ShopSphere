@@ -94,7 +94,8 @@ wait_for_port() {
 echo ""
 echo -e "${YELLOW}[4/8] Starting API Gateway (port 5001)...${NC}"
 cd "$PROJECT/api-gateway"
-python3 -m uvicorn main:app --host 0.0.0.0 --port 5001 > /tmp/gateway.log 2>&1 &
+source "$PROJECT/.venv/bin/activate"
+python -m uvicorn main:app --host 0.0.0.0 --port 5001 > /tmp/gateway.log 2>&1 &
 GATEWAY_PID=$!
 echo $GATEWAY_PID > /tmp/gateway.pid
 wait_for_port 5001 "API Gateway"
@@ -114,7 +115,8 @@ BACKEND_OK=$?
 echo ""
 echo -e "${YELLOW}[6/8] Starting Monitor API (port 3000)...${NC}"
 cd "$PROJECT/monitor-api"
-python3 -m uvicorn monitor_server:app --host 0.0.0.0 --port 3000 > /tmp/monitor_api.log 2>&1 &
+source "$PROJECT/.venv/bin/activate"
+python -m uvicorn monitor_server:app --host 0.0.0.0 --port 3000 > /tmp/monitor_api.log 2>&1 &
 MONITOR_PID=$!
 echo $MONITOR_PID > /tmp/monitor_api.pid
 wait_for_port 3000 "Monitor API"

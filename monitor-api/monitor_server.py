@@ -86,6 +86,27 @@ def get_redis_blocked():
         return []
 
 
+@app.get("/")
+async def root():
+    return {
+        "service": "ShopSphere Monitor API",
+        "version": "1.0.0",
+        "status": "running",
+        "port": 3000,
+        "docs": "http://localhost:3000/docs",
+        "health": "http://localhost:3000/health",
+        "endpoints": {
+            "overview": "http://localhost:3000/monitor/overview",
+            "live_requests": "http://localhost:3000/monitor/requests/live",
+            "live_threats": "http://localhost:3000/monitor/threats/live",
+            "rate_limits": "http://localhost:3000/monitor/rate-limits/active",
+            "system_health": "http://localhost:3000/monitor/health",
+            "hourly_stats": "http://localhost:3000/monitor/stats/hourly"
+        },
+        "description": "Real-time monitoring API for the ShopSphere API Gateway"
+    }
+
+
 @app.get("/health")
 async def health():
     redis_status = "connected" if REDIS_OK else "disconnected"

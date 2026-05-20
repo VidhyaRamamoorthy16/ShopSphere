@@ -9,3 +9,4 @@ joblib
 websockets
 python-multipart
 python-dotenv
+python-jose

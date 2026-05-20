@@ -1,4 +1,5 @@
-import React, { Suspense, lazy } from 'react'
+import React, { Suspense, lazy, useEffect } from 'react'
+import { startFrontendKeepAlive } from './utils/preWarmServers'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import ToastContainer from './components/Toast'
@@ -43,6 +44,11 @@ const PrivateRoute = ({ children }) => {
 }
 
 export default function App() {
+  useEffect(() => {
+    const stop = startFrontendKeepAlive()
+    return stop
+  }, [])
+
   return (
     <CartProvider>
       <Router>

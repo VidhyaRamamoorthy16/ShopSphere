@@ -178,6 +178,20 @@ async def log_supabase(entry, action, threat_type=None):
     except Exception as e:
         logger.debug(f"Supabase log: {e}")
 
+@app.get("/")
+async def root():
+    return {
+        "service": "ShopSphere Intelligent API Gateway",
+        "version": "1.0.0",
+        "status": "running",
+        "port": 5001,
+        "docs": "http://localhost:5001/docs",
+        "health": "http://localhost:5001/health",
+        "ml_metrics": "http://localhost:5001/ml/metrics",
+        "description": "ML-powered security gateway with threat detection, rate limiting & async proxy"
+    }
+
+
 @app.get("/health")
 async def health():
     return {
@@ -229,6 +243,15 @@ async def proxy(request: Request, path: str):
             # Add user info to headers for backend
             request.state.user = user_payload
         except Exception as e:
+            dur = time.time() - start
+            entry = {
+                "ip": ip, "method": method, "path": f"/{path}",
+                "timestamp": time.time(),
+                "timestamp_str": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+                "body_preview": body_str[:200],
+                "status": 401, "duration_ms": round(dur*1000,2), "action": "ERROR", "reason": "Unauthorized (Invalid Token)"
+            }
+            await log_redis(entry, "ERROR", ip)
             return Response(
                 content=json.dumps({"error": "Authentication required. Please login."}),
                 status_code=401, 

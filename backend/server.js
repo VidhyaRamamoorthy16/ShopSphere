@@ -133,6 +133,26 @@ function authenticateToken(req, res, next) {
   }
 }
 
+app.get('/', (req, res) => {
+  res.json({
+    service: 'ShopSphere Backend API',
+    version: '1.0.0',
+    status: 'running',
+    port: PORT,
+    health: `http://localhost:${PORT}/health`,
+    endpoints: {
+      auth: '/api/auth/login | /api/auth/register | /api/auth/me',
+      products: '/api/products | /api/products/:id | /api/categories',
+      cart: '/api/cart',
+      orders: '/api/orders',
+      wishlist: '/api/wishlist',
+      reviews: '/api/products/:id/reviews',
+      notifications: '/api/notifications'
+    },
+    description: 'Node.js + Express backend powering the ShopSphere e-commerce platform'
+  })
+})
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'Backend running in Modular Mode',
