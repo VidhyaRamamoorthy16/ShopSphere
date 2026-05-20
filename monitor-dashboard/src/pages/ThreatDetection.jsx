@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const MONITOR = (import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000')
+const MONITOR = (import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com')
 
 export default function ThreatDetection() {
   const [threats, setThreats] = useState([]);

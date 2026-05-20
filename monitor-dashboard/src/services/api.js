@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-const MONITOR = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
-const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:5001'
+const MONITOR = import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com'
+const GATEWAY = import.meta.env.VITE_GATEWAY_URL || 'https://shopsphere-gateway.onrender.com'
 const API_BASE = `${MONITOR}/monitor`
 const GATEWAY_URL = GATEWAY
 

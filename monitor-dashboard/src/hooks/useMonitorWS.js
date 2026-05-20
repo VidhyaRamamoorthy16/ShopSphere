@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 
-const MONITOR = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000';
+const MONITOR = import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com';
 const WS_URL = `${MONITOR.replace('http', 'ws')}/ws/monitor`;
 
 const useMonitorWS = () => {

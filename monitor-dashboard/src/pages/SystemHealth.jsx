@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
-const MONITOR_URL = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
-const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || 'http://localhost:5001'
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+const MONITOR_URL = import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com'
+const GATEWAY_URL = import.meta.env.VITE_GATEWAY_URL || 'https://shopsphere-gateway.onrender.com'
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://shopsphere-a1sj.onrender.com'
 
 const services = [
   { name: 'API Gateway',        port: '5001', url: GATEWAY_URL,                       icon: '🔒', color: '#3b82f6' },

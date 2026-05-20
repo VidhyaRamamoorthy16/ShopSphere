@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 
-const MONITOR = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
+const MONITOR = import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com'
 
 export const useMonitorWS = () => {
   const [isConnected, setIsConnected] = useState(false)
