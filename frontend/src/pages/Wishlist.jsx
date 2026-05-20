@@ -77,7 +77,7 @@ export default function Wishlist() {
           <div style={s.grid}>
             {items.map(item => (
               <div key={item.product_id} style={{ position: 'relative' }}>
-                <ProductCard product={item.product} />
+                <ProductCard product={item.products || item.product} />
                 <button onClick={() => removeItem(item.product_id)} style={{ position: 'absolute', top: 8, right: 8, background: 'var(--rose)', color: '#fff', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>×</button>
               </div>
             ))}

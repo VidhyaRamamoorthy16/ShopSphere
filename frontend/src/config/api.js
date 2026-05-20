@@ -1,5 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-const MONITOR_BASE = import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com'
+const MONITOR_BASE = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
 
 export const api = {
   get: async (endpoint) => {
