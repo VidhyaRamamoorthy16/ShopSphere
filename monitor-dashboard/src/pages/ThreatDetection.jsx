@@ -5,15 +5,20 @@ const MONITOR = (import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor
 export default function ThreatDetection() {
   const [threats, setThreats] = useState([]);
   const [stats, setStats] = useState({ total: 0 });
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchThreats = async () => {
       try {
         const res = await fetch(`${MONITOR}/monitor/threats/live`);
+        if (!res.ok) throw new Error('API Error');
         const data = await res.json();
         setThreats(data.threats || []);
         setStats({ total: data.total || 0 });
-      } catch (e) {}
+        setError(null);
+      } catch (e) {
+        setError("⚠️ Connection blocked. If you are using Brave Browser or an Ad Blocker, it is likely blocking requests because the API domain contains 'monitor'. Please disable shields for this site to see live data.");
+      }
     };
     fetchThreats();
     const interval = setInterval(fetchThreats, 5000);
@@ -49,6 +54,18 @@ export default function ThreatDetection() {
         <div style={S.title}>Threat Detection</div>
         <div style={S.stats}>Total threats detected: {stats.total}</div>
       </div>
+
+      {error && (
+        <div style={{ background: 'rgba(255, 71, 87, 0.15)', border: '1px solid rgba(255, 71, 87, 0.3)', padding: '16px', borderRadius: '8px', color: '#FF4757', marginBottom: '20px', fontSize: '14px', lineHeight: '1.5' }}>
+          {error}
+        </div>
+      )}
+
+      {threats.length === 0 && !error && (
+        <div style={{ padding: '40px', textAlign: 'center', color: '#8888AA', background: '#1a1a2e', borderRadius: '8px', border: '1px solid #2a2a4a' }}>
+          No threats detected recently.
+        </div>
+      )}
 
       <div style={S.grid}>
         {threats.map((threat, i) => (
