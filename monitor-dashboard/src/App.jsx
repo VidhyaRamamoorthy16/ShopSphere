@@ -1,14 +1,14 @@
 import React, { useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { startKeepAlive } from './utils/keepAlive'
 
 // Silent background wake-up — does not block UI
 setTimeout(() => {
-  fetch('https://shopsphere-a1sj.onrender.com/api/products')
+  fetch('https://shopsphere-a1sj.onrender.com/api/products', { mode: 'no-cors' })
     .catch(() => {});
-  fetch('https://shopsphere-gateway.onrender.com/health')
+  fetch('https://shopsphere-gateway.onrender.com/health', { mode: 'no-cors' })
     .catch(() => {});
-  fetch('https://shopsphere-monitor.onrender.com/health')
+  fetch('https://shopsphere-monitor.onrender.com/health', { mode: 'no-cors' })
     .catch(() => {});
 }, 0);
 
@@ -27,28 +27,26 @@ export default function App() {
   }, [])
 
   return (
-    <Router>
-      <React.Suspense fallback={
-        <div style={{ minHeight:'100vh', background:'#0d1117', display:'flex',
-          alignItems:'center', justifyContent:'center', color:'#6b7280', fontSize:14 }}>
-          Loading...
+    <React.Suspense fallback={
+      <div style={{ minHeight:'100vh', background:'#0d1117', display:'flex',
+        alignItems:'center', justifyContent:'center', color:'#6b7280', fontSize:14 }}>
+        Loading...
+      </div>
+    }>
+      <div style={{ display: 'flex', minHeight: '100vh', background: '#0d1117' }}>
+        <Sidebar />
+        <div style={{ flex: 1, overflow: 'auto' }}>
+          <Routes>
+            <Route path="/"            element={<Navigate to="/overview" replace />} />
+            <Route path="/overview"    element={<Overview />} />
+            <Route path="/requests"    element={<LiveRequests />} />
+            <Route path="/rate-limits" element={<RateLimits />} />
+            <Route path="/threats"     element={<ThreatDetection />} />
+            <Route path="/health"      element={<SystemHealth />} />
+            <Route path="*"            element={<Navigate to="/overview" replace />} />
+          </Routes>
         </div>
-      }>
-        <div style={{ display: 'flex', minHeight: '100vh', background: '#0d1117' }}>
-          <Sidebar />
-          <div style={{ flex: 1, overflow: 'auto' }}>
-            <Routes>
-              <Route path="/"            element={<Navigate to="/overview" replace />} />
-              <Route path="/overview"    element={<Overview />} />
-              <Route path="/requests"    element={<LiveRequests />} />
-              <Route path="/rate-limits" element={<RateLimits />} />
-              <Route path="/threats"     element={<ThreatDetection />} />
-              <Route path="/health"      element={<SystemHealth />} />
-              <Route path="*"            element={<Navigate to="/overview" replace />} />
-            </Routes>
-          </div>
-        </div>
-      </React.Suspense>
-    </Router>
+      </div>
+    </React.Suspense>
   )
 }
