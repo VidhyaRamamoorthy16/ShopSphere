@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 
 const MONITOR = (import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com')
 
+const formatTime = (ts) => {
+  if (!ts) return '—';
+  try {
+    const d = new Date(ts.includes('Z') ? ts : ts.replace(' ', 'T') + 'Z');
+    if (isNaN(d.getTime())) return ts;
+    return d.toLocaleString();
+  } catch (e) {
+    return ts;
+  }
+}
+
 export default function ThreatDetection() {
   const [threats, setThreats] = useState([]);
   const [stats, setStats] = useState({ total: 0 });
@@ -85,7 +96,7 @@ export default function ThreatDetection() {
             </div>
             <div style={S.row}>
               <span style={S.label}>Timestamp</span>
-              <span style={S.value}>{threat.timestamp}</span>
+              <span style={S.value}>{formatTime(threat.timestamp)}</span>
             </div>
             {threat.payload && threat.payload.length > 0 && (
               <div style={S.code}>{threat.payload}</div>

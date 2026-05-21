@@ -17,6 +17,17 @@ const ACTION_COLORS = {
   ERROR:   { bg: 'rgba(136,136,170,0.12)', color: '#8888AA', border: '#8888AA' },
 }
 
+const formatTime = (ts) => {
+  if (!ts) return '—';
+  try {
+    const d = new Date(ts.includes('Z') ? ts : ts.replace(' ', 'T') + 'Z');
+    if (isNaN(d.getTime())) return ts;
+    return d.toLocaleString();
+  } catch (e) {
+    return ts;
+  }
+}
+
 export default function LiveRequests() {
   const [requests, setRequests] = useState([])
   const [paused, setPaused] = useState(false)
@@ -106,7 +117,7 @@ export default function LiveRequests() {
     const headers = ['Timestamp', 'IP Address', 'Method', 'Endpoint', 'Status', 'Duration (ms)', 'Action', 'Reason']
 
     const rows = requests.map(req => [
-      req.timestamp_str || req.timestamp || '',
+      formatTime(req.timestamp_str || req.timestamp || ''),
       req.ip || '',
       req.method || '',
       req.path || '',
@@ -239,7 +250,7 @@ export default function LiveRequests() {
                     transition: 'background 0.15s'
                   }}>
                     <td style={{ padding: '10px 12px', color: '#8888AA', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, whiteSpace: 'nowrap' }}>
-                      {req.timestamp || '—'}
+                      {formatTime(req.timestamp)}
                     </td>
                     <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#EAEAF5' }}>
                       {req.ip || '—'}
