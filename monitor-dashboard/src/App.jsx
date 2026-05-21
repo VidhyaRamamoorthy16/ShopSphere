@@ -1,7 +1,16 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import PreLoader from './components/PreLoader'
 import { startKeepAlive } from './utils/keepAlive'
+
+// Silent background wake-up — does not block UI
+setTimeout(() => {
+  fetch('https://shopsphere-a1sj.onrender.com/api/products')
+    .catch(() => {});
+  fetch('https://shopsphere-gateway.onrender.com/health')
+    .catch(() => {});
+  fetch('https://shopsphere-monitor.onrender.com/health')
+    .catch(() => {});
+}, 0);
 
 // Lazy load all pages
 const Overview        = React.lazy(() => import('./pages/Overview'))
@@ -12,19 +21,10 @@ const SystemHealth    = React.lazy(() => import('./pages/SystemHealth'))
 const Sidebar         = React.lazy(() => import('./components/Sidebar'))
 
 export default function App() {
-  const [ready, setReady] = useState(false)
-
   useEffect(() => {
-    if (ready) {
-      // Start keep-alive pings once services are confirmed online
-      const stop = startKeepAlive()
-      return stop
-    }
-  }, [ready])
-
-  if (!ready) {
-    return <PreLoader onReady={() => setReady(true)} />
-  }
+    const stop = startKeepAlive()
+    return stop
+  }, [])
 
   return (
     <Router>
