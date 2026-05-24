@@ -3,6 +3,13 @@ import { useNavigate } from 'react-router-dom'
 
 export default function Footer() {
   const navigate = useNavigate()
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768)
+
+  React.useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   return (
     <footer style={{ background: 'var(--surface)', borderTop: '1px solid var(--border)', marginTop: 80 }}>
@@ -26,8 +33,8 @@ export default function Footer() {
       </div>
 
       {/* Main footer */}
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 40px 28px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 40 }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: isMobile ? '32px 16px 24px' : '48px 40px 28px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '2fr 1fr 1fr 1fr', gap: isMobile ? 24 : 40, marginBottom: 40 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
               <div style={{ width: 34, height: 34, background: 'var(--primary)', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 15, fontWeight: 800 }}>S</div>

@@ -13,11 +13,19 @@ export default function Products() {
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
   const [error, setError] = useState(null)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+  const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState({
     category: searchParams.get('category') || '',
     search: searchParams.get('search') || '',
     min_price: '', max_price: '', sort: 'created_at'
   })
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   const CATEGORIES = ['Electronics','Mobiles','Fashion','Books','Sports','Beauty','Toys','Home & Kitchen']
 
@@ -78,15 +86,15 @@ export default function Products() {
 
   const s = {
     page: { background: 'var(--bg)', minHeight: '100vh' },
-    layout: { display: 'flex', gap: 0, maxWidth: '100%' },
-    sidebar: { width: 260, flexShrink: 0, background: 'var(--surface)', borderRight: '1px solid var(--border)', padding: '32px 24px', minHeight: 'calc(100vh - 120px)' },
+    layout: { display: 'flex', gap: isMobile ? 0 : 24, flexDirection: isMobile ? 'column' : 'row', padding: isMobile ? '16px' : '32px 40px', maxWidth: '100%' },
+    sidebar: { position: isMobile ? 'static' : 'sticky', width: isMobile ? '100%' : 260, display: isMobile && !showFilters ? 'none' : 'block', flexShrink: 0, background: 'var(--surface)', borderRight: '1px solid var(--border)', padding: '32px 24px', minHeight: 'calc(100vh - 120px)' },
     sideTitle: { fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 700, marginBottom: 28, color: 'var(--text)' },
     filterSection: { marginBottom: 28 },
     filterLabel: { fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text3)', marginBottom: 12, display: 'block', fontFamily: "'Inter', sans-serif" },
     filterItem: (active) => ({ padding: '10px 0', fontSize: 13, cursor: 'pointer', color: active ? 'var(--violet)' : 'var(--text2)', borderLeft: active ? '3px solid var(--violet)' : '3px solid transparent', paddingLeft: 12, marginBottom: 2, fontWeight: 500, background: active ? 'var(--violet-dim)' : 'transparent', borderRadius: '0 6px 6px 0' }),
     priceInput: { width: '100%', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontSize: 13, background: 'var(--surface2)', outline: 'none', color: 'var(--text)', marginBottom: 10, fontFamily: "'Inter', sans-serif" },
     main: { flex: 1, padding: '32px 40px' },
-    topBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid var(--border)' },
+    topBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid var(--border)', flexWrap: 'wrap' },
     resCount: { fontFamily: "'Syne', sans-serif", fontSize: 22, fontWeight: 700, color: 'var(--text)' },
     sortSelect: { border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontSize: 13, background: 'var(--surface)', color: 'var(--text)', fontFamily: "'Inter', sans-serif" },
     pGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 },
@@ -100,6 +108,28 @@ export default function Products() {
     <div style={s.page}>
       <Navbar />
       <div style={s.layout}>
+        {isMobile && (
+          <button
+            onClick={() => setShowFilters(s => !s)}
+            style={{
+              width: '100%',
+              padding: '10px',
+              background: '#eff6ff',
+              border: '1.5px solid #bfdbfe',
+              borderRadius: 10,
+              color: '#2563eb',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+              marginBottom: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+            }}>
+            🔧 {showFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
+        )}
         <div style={s.sidebar}>
           <div style={s.sideTitle}>Refine</div>
           <div style={s.filterSection}>
@@ -139,7 +169,7 @@ export default function Products() {
               </button>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 18, alignItems: 'stretch' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))', gap: isMobile ? 10 : 18, alignItems: 'stretch' }}>
               {products.map(p => (
                 <div key={p.id} style={{ display: 'flex', flexDirection: 'column' }}>
                   <ProductCard product={p} />

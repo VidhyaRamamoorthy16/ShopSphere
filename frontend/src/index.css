@@ -201,3 +201,26 @@ img { max-width: 100%; display: block; }
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
+
+/* ═══════════════════════════════════════════
+   MOBILE RESPONSIVENESS — 768px and below
+   Desktop styles are untouched above
+═══════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* Products grid — 2 columns on mobile */
+  .products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+
+  /* Products grid — 1 column on very small screens */
+  .products-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+}

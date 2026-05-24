@@ -39,12 +39,12 @@ sleep 3
 
 echo "[2/5] Starting API Gateway (port 5001)..."
 cd "$PROJECT/api-gateway"
-python3 -m uvicorn main:app --host 0.0.0.0 --port 5001 --reload > /tmp/gateway.log 2>&1 &
+venv/bin/python3 -m uvicorn main:app --host 0.0.0.0 --port 5001 --reload > /tmp/gateway.log 2>&1 &
 sleep 4
 
 echo "[3/5] Starting Monitor API (port 3000)..."
 cd "$PROJECT/monitor-api"
-python3 -m uvicorn monitor_server:app --host 0.0.0.0 --port 3000 --reload > /tmp/monitor.log 2>&1 &
+venv/bin/python3 -m uvicorn monitor_server:app --host 0.0.0.0 --port 3000 --reload > /tmp/monitor.log 2>&1 &
 sleep 3
 
 echo "[4/5] Starting Frontend (port 5173)..."

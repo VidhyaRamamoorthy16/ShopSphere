@@ -23,8 +23,8 @@ export default function Login() {
   }
 
   const s = {
-    page: { background: 'var(--bg)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-    card: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 48, width: '100%', maxWidth: 420 },
+    page: { background: 'var(--bg)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: window.innerWidth <= 768 ? '24px 16px' : '60px 40px' },
+    card: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: window.innerWidth <= 768 ? '24px 20px' : 48, width: '100%', maxWidth: 420, margin: '0 auto' },
     logo: { fontFamily: "'Syne',sans-serif", fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 28, textAlign: 'center' },
     logoSpan: { color: 'var(--primary)' },
     title: { fontFamily: "'Syne',sans-serif", fontSize: 24, fontWeight: 700, marginBottom: 8, letterSpacing: '-0.02em', color: 'var(--text)' },

@@ -15,6 +15,13 @@ export default function Dashboard() {
   const [profile, setProfile] = useState({ name: '', phone: '' })
   const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' })
   const [saving, setSaving] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   useEffect(() => {
     if (!api.isLoggedIn()) { navigate('/login'); return }
@@ -66,13 +73,13 @@ export default function Dashboard() {
 
   const s = {
     page: { background: 'var(--bg)', minHeight: '100vh' },
-    layout: { display: 'grid', gridTemplateColumns: '260px 1fr', gap: 0 },
+    layout: { display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 0 : 32, padding: isMobile ? '16px' : '32px 40px' },
     input: { width: '100%', padding: 12, fontSize: 13, border: '1px solid var(--faint)', background: 'var(--card)', marginBottom: 16 },
     btn: { padding: '12px 24px', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', background: 'var(--ink)', color: 'var(--bg)', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 },
     section: { background: 'var(--card)', border: '1px solid var(--faint)', padding: 24, marginBottom: 24 },
     sectionTitle: { fontFamily: "'Playfair Display', serif", fontSize: 18, marginBottom: 20 },
     label: { fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 8, display: 'block' },
-    sidebar: { background: 'var(--surface)', borderRight: '1px solid var(--faint)', padding: '32px 24px', minHeight: 'calc(100vh - 120px)' },
+    sidebar: { width: isMobile ? '100%' : 260, flexShrink: 0, background: 'var(--surface)', borderRight: '1px solid var(--faint)', padding: '32px 24px', minHeight: isMobile ? 'auto' : 'calc(100vh - 120px)' },
     avatar: { width: 60, height: 60, borderRadius: '50%', background: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#fff', marginBottom: 12 },
     name: { fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 400, marginBottom: 4 },
     email: { fontSize: 11, color: 'var(--muted)', marginBottom: 24 },
@@ -118,10 +125,12 @@ export default function Dashboard() {
               <div style={s.statLabel}>Total Spent</div>
             </div>
           </div>
-          <div style={s.navItem(activeTab === 'orders')} onClick={() => setActiveTab('orders')}>My Orders</div>
-          <div style={s.navItem(activeTab === 'addresses')} onClick={() => setActiveTab('addresses')}>Addresses</div>
-          <div style={s.navItem(activeTab === 'profile')} onClick={() => setActiveTab('profile')}>Profile</div>
-          <div style={s.logout} onClick={logout}>Sign Out</div>
+          <div style={{ display: 'flex', flexDirection: isMobile ? 'row' : 'column', overflowX: isMobile ? 'auto' : 'visible', flexWrap: isMobile ? 'nowrap' : 'wrap', gap: isMobile ? 16 : 0, paddingBottom: isMobile ? 16 : 0 }}>
+            <div style={{...s.navItem(activeTab === 'orders'), whiteSpace: 'nowrap'}} onClick={() => setActiveTab('orders')}>My Orders</div>
+            <div style={{...s.navItem(activeTab === 'addresses'), whiteSpace: 'nowrap'}} onClick={() => setActiveTab('addresses')}>Addresses</div>
+            <div style={{...s.navItem(activeTab === 'profile'), whiteSpace: 'nowrap'}} onClick={() => setActiveTab('profile')}>Profile</div>
+            <div style={{...s.logout, whiteSpace: 'nowrap', marginTop: isMobile ? 0 : 24, paddingTop: isMobile ? 10 : 0}} onClick={logout}>Sign Out</div>
+          </div>
         </div>
         <div style={s.main}>
           <div style={s.title}>{activeTab === 'orders' ? 'Your Orders' : activeTab === 'addresses' ? 'Saved Addresses' : 'Profile'}</div>

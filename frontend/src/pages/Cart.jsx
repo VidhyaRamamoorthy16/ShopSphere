@@ -23,6 +23,13 @@ export default function Cart() {
   const [discount, setDiscount] = useState(0)
   const [couponError, setCouponError] = useState('')
   const [validating, setValidating] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   useEffect(() => { fetchCart() }, [])
 
@@ -85,11 +92,11 @@ export default function Cart() {
 
   const s = {
     page: { background: 'var(--bg)', minHeight: '100vh' },
-    layout: { display: 'grid', gridTemplateColumns: '1fr 340px', gap: 40, padding: '40px 48px' },
+    layout: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 380px', gap: isMobile ? 16 : 24, padding: isMobile ? '16px' : '32px 40px' },
     left: {},
     title: { fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 300, marginBottom: 28, color: 'var(--ink)' },
-    item: { display: 'flex', gap: 20, background: 'var(--card)', border: '1px solid var(--faint)', padding: 20, marginBottom: 16 },
-    img: { width: 80, height: 80, background: 'var(--gold-pale)', flexShrink: 0 },
+    item: { display: 'flex', gap: 20, background: 'var(--card)', border: '1px solid var(--faint)', padding: 20, marginBottom: 16, flexWrap: isMobile ? 'wrap' : 'nowrap' },
+    img: { width: isMobile ? 80 : 100, height: isMobile ? 80 : 100, background: 'var(--gold-pale)', flexShrink: 0 },
     details: { flex: 1 },
     name: { fontFamily: "'Playfair Display', serif", fontSize: 14, color: 'var(--ink)', marginBottom: 6 },
     seller: { fontSize: 10, color: 'var(--muted)', marginBottom: 8 },

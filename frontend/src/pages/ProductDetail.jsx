@@ -25,6 +25,13 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1)
   const [adding, setAdding] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   useEffect(() => { fetchProduct() }, [id])
 
@@ -52,8 +59,8 @@ export default function ProductDetail() {
   if (loading || !product) return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <Navbar />
-      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '48px 32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
-        <div className="skeleton" style={{ borderRadius: 16, height: 500 }} />
+      <div style={{ maxWidth: 1400, margin: '0 auto', padding: isMobile ? '24px 16px' : '48px 32px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 16 : 48 }}>
+        <div className="skeleton" style={{ borderRadius: 16, height: isMobile ? 300 : 500 }} />
         <div>
           <div className="skeleton" style={{ borderRadius: 8, height: 24, width: 120, marginBottom: 16 }} />
           <div className="skeleton" style={{ borderRadius: 8, height: 40, width: '80%', marginBottom: 24 }} />
@@ -65,11 +72,11 @@ export default function ProductDetail() {
 
   const s = {
     page: { background: 'var(--bg)', minHeight: '100vh' },
-    container: { maxWidth: 1400, margin: '0 auto', padding: '32px' },
+    container: { maxWidth: 1400, margin: '0 auto', padding: isMobile ? '16px' : '32px' },
     breadcrumb: { fontSize: 11, color: 'var(--text3)', marginBottom: 24 },
-    layout: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 },
-    imageArea: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-    image: { maxWidth: '100%', maxHeight: 420, objectFit: 'contain' },
+    layout: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 16 : 48 },
+    imageArea: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: isMobile ? 16 : 32, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    image: { maxWidth: '100%', maxHeight: isMobile ? 300 : 420, objectFit: 'contain' },
     category: { display: 'inline-block', background: 'var(--violet-dim)', border: '1px solid var(--violet)', color: 'var(--violet)', fontSize: 10, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '4px 12px', borderRadius: 20, marginBottom: 16 },
     title: { fontFamily: "'Syne', sans-serif", fontSize: 32, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.02em', marginBottom: 8 },
     brand: { fontSize: 13, color: 'var(--text2)', marginBottom: 16 },

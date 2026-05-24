@@ -148,6 +148,7 @@ export default function ProductCard({ product: p }) {
 
   const savings = (p.original_price || 0) - (p.price || 0)
   const stars = Math.round(p.rating || 0)
+  const imgHeight = window.innerWidth <= 480 ? 150 : 210
 
   return (
     <div
@@ -170,7 +171,7 @@ export default function ProductCard({ product: p }) {
       }}>
 
       {/* Image */}
-      <div style={{ position: 'relative', width: '100%', height: 210, overflow: 'hidden', background: '#f9fafb', flexShrink: 0 }}>
+      <div style={{ position: 'relative', width: '100%', height: imgHeight, overflow: 'hidden', background: '#f9fafb', flexShrink: 0 }}>
         <img
           src={p.image_url}
           alt={p.name}
@@ -218,9 +219,9 @@ export default function ProductCard({ product: p }) {
       </div>
 
       {/* Card body */}
-      <div style={{ padding: '14px 16px 16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <div style={{ padding: window.innerWidth <= 480 ? '10px 12px 12px' : '14px 16px 16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{p.category}</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', lineHeight: 1.35, marginBottom: 4,
+        <div style={{ fontSize: window.innerWidth <= 480 ? 12 : 14, fontWeight: 700, color: '#111827', lineHeight: 1.35, marginBottom: 4,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 38 }}>
           {p.name}
         </div>
@@ -240,7 +241,7 @@ export default function ProductCard({ product: p }) {
         <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontSize: 18, fontWeight: 800, color: '#111827' }}>{formatPrice(p.price)}</span>
+              <span style={{ fontSize: window.innerWidth <= 480 ? 15 : 18, fontWeight: 800, color: '#111827' }}>{formatPrice(p.price)}</span>
               {p.original_price > p.price && (
                 <span style={{ fontSize: 12, color: '#d1d5db', textDecoration: 'line-through' }}>{formatPrice(p.original_price)}</span>
               )}

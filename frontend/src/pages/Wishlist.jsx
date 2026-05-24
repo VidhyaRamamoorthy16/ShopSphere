@@ -12,6 +12,13 @@ export default function Wishlist() {
   const { refreshWishlist } = useCart()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   useEffect(() => { fetchWishlist() }, [])
 
@@ -35,10 +42,10 @@ export default function Wishlist() {
 
   const s = {
     page: { background: 'var(--bg)', minHeight: '100vh' },
-    container: { maxWidth: 1400, margin: '0 auto', padding: '32px' },
+    container: { maxWidth: 1400, margin: '0 auto', padding: isMobile ? '16px' : '32px 40px' },
     title: { fontFamily: "'Syne', sans-serif", fontSize: 32, fontWeight: 700, marginBottom: 8 },
     count: { fontSize: 14, color: 'var(--text2)', marginBottom: 24 },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 },
+    grid: { display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 10 : 20 },
     empty: { textAlign: 'center', padding: '80px 20px' },
     emptyTitle: { fontFamily: "'Syne', sans-serif", fontSize: 24, fontWeight: 700, marginBottom: 12 },
     emptySub: { fontSize: 14, color: 'var(--text2)', marginBottom: 24 },
