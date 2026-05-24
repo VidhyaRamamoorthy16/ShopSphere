@@ -245,3 +245,32 @@ body {
 .risk-high {
   background: linear-gradient(to right, #ef4444 0%, #ef4444 100%);
 }
+
+.recharts-wrapper {
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.recharts-surface {
+  width: 100% !important;
+  overflow: visible;
+}
+
+svg.recharts-surface {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .recharts-wrapper,
+  .recharts-responsive-container {
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .recharts-cartesian-axis-tick-value {
+    font-size: 9px !important;
+  }
+  .recharts-legend-item-text {
+    font-size: 10px !important;
+  }
+}

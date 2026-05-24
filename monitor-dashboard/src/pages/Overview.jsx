@@ -9,7 +9,7 @@ const S = {
   bigNum: (color) => ({ fontSize:'32px', fontWeight:'700', color, letterSpacing:'-0.02em', marginBottom:'4px' }),
   sub: { fontSize:'12px', color:'#8888AA' },
   grid4: { display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'16px', marginBottom:'20px' },
-  grid2: { display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginBottom:'20px' },
+  grid2: (isMobile) => ({ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:'16px', marginBottom:'20px' }),
   table: { width:'100%', borderCollapse:'collapse' },
   th: { textAlign:'left', padding:'12px', fontSize:'12px', color:'#8888AA', borderBottom:'1px solid #2D2D4E' },
   td: { padding:'12px', fontSize:'13px', color:'#EAEAF5', borderBottom:'1px solid #2D2D4E' },
@@ -122,12 +122,23 @@ export default function Overview() {
     threatScore: 62
   })
   const [weekStats, setWeekStats] = useState({ total_7d: 0, blocked_7d: 0, threats_7d: 0, block_rate_pct: 0, daily: [] })
+  const [windowWidth, setWindowWidth] = React.useState(window.innerWidth)
 
   const animatedTotal = useAnimatedCounter(data.totalRequests)
   const animatedBlocked = useAnimatedCounter(data.blocked)
   const animatedRate = useAnimatedCounter(data.rateLimited)
   const animatedThreat = useAnimatedCounter(data.threatScore)
   const [liveRequests, setLiveRequests] = useState([])
+
+  const isMobile = windowWidth <= 768
+  const chartHeight = isMobile ? 200 : 280
+  const pieChartHeight = isMobile ? 180 : 200
+
+  React.useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     const BASE = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
@@ -251,8 +262,9 @@ export default function Overview() {
       <div style={S.grid2}>
         <div style={S.card}>
           <div style={{...S.label, marginBottom:'16px'}}>Requests per Minute</div>
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={lineData}
+          <div style={{ width: '100%', height: chartHeight, minWidth: 0 }}>
+            <ResponsiveContainer width="100%" height="100%" debounce={50}>
+              <AreaChart data={lineData}
               margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="requestGradient" x1="0" y1="0"
@@ -295,21 +307,24 @@ export default function Overview() {
                 }}
               />
             </AreaChart>
-          </ResponsiveContainer>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div style={S.card}>
           <div style={{...S.label, marginBottom:'16px'}}>Request Breakdown</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value">
-                {pieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip contentStyle={{background:'#1A1A2E', border:'1px solid #2D2D4E', borderRadius:'8px'}} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div style={{ width: '100%', height: pieChartHeight, minWidth: 0 }}>
+            <ResponsiveContainer width="100%" height="100%" debounce={50}>
+              <PieChart>
+                <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value">
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip contentStyle={{background:'#1A1A2E', border:'1px solid #2D2D4E', borderRadius:'8px'}} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
           <div style={{display:'flex', justifyContent:'center', gap:'16px', marginTop:'8px'}}>
             {pieData.map(item => (
               <div key={item.name} style={{display:'flex', alignItems:'center', gap:'6px'}}>
@@ -346,19 +361,21 @@ export default function Overview() {
         </div>
       </div>
 
-      <div style={S.grid2}>
+      <div style={S.grid2(isMobile)}>
         <div style={S.card}>
           <div style={{...S.label, marginBottom:'16px'}}>Daily Traffic (7 Days)</div>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={weekStats.daily}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2D2D4E" />
-              <XAxis dataKey="date" stroke="#8888AA" fontSize={11} />
-              <YAxis stroke="#8888AA" fontSize={11} />
-              <Tooltip contentStyle={{background:'#1A1A2E', border:'1px solid #2D2D4E', borderRadius:'8px'}} />
-              <Bar dataKey="total" fill={COLORS.purple} name="Total" />
-              <Bar dataKey="blocked" fill={COLORS.red} name="Blocked" />
-            </BarChart>
-          </ResponsiveContainer>
+          <div style={{ width: '100%', height: chartHeight, minWidth: 0 }}>
+            <ResponsiveContainer width="100%" height="100%" debounce={50}>
+              <BarChart data={weekStats.daily}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#2D2D4E" />
+                <XAxis dataKey="date" stroke="#8888AA" fontSize={11} />
+                <YAxis stroke="#8888AA" fontSize={11} />
+                <Tooltip contentStyle={{background:'#1A1A2E', border:'1px solid #2D2D4E', borderRadius:'8px'}} />
+                <Bar dataKey="total" fill={COLORS.purple} name="Total" />
+                <Bar dataKey="blocked" fill={COLORS.red} name="Blocked" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div style={S.card}>
