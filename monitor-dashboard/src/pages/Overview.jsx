@@ -45,7 +45,7 @@ function useAnimatedCounter(target, duration = 1200) {
   return count
 }
 
-const BASE = import.meta.env.VITE_MONITOR_URL || (import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com')
+const BASE = import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com'
 
 const downloadFromAPI = async (endpoint, filename, type) => {
   try {
@@ -141,7 +141,6 @@ export default function Overview() {
   }, [])
 
   useEffect(() => {
-    const BASE = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
     fetch(`${BASE}/monitor/requests/live`)
       .then(r => r.json())
       .then(d => setLiveRequests(d.requests || []))
