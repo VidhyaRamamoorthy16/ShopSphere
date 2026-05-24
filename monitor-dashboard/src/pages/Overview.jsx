@@ -259,7 +259,7 @@ export default function Overview() {
         </div>
       </div>
 
-      <div style={S.grid2}>
+      <div style={S.grid2(isMobile)}>
         <div style={S.card}>
           <div style={{...S.label, marginBottom:'16px'}}>Requests per Minute</div>
           <div style={{ width: '100%', height: chartHeight, minWidth: 0 }}>
