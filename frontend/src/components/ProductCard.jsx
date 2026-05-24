@@ -148,7 +148,8 @@ export default function ProductCard({ product: p }) {
 
   const savings = (p.original_price || 0) - (p.price || 0)
   const stars = Math.round(p.rating || 0)
-  const imgHeight = window.innerWidth <= 480 ? 150 : 210
+  const isMobile = window.innerWidth <= 480
+  const imgHeight = isMobile ? 120 : 210
 
   return (
     <div
@@ -219,10 +220,10 @@ export default function ProductCard({ product: p }) {
       </div>
 
       {/* Card body */}
-      <div style={{ padding: window.innerWidth <= 480 ? '10px 12px 12px' : '14px 16px 16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{p.category}</div>
-        <div style={{ fontSize: window.innerWidth <= 480 ? 12 : 14, fontWeight: 700, color: '#111827', lineHeight: 1.35, marginBottom: 4,
-          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: 38 }}>
+      <div style={{ padding: isMobile ? '8px 10px 10px' : '14px 16px 16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <div style={{ fontSize: isMobile ? 9 : 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4 }}>{p.category}</div>
+        <div style={{ fontSize: isMobile ? 11 : 14, fontWeight: 700, color: '#111827', lineHeight: 1.35, marginBottom: 4,
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: isMobile ? 30 : 38 }}>
           {p.name}
         </div>
         <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 8 }}>{p.brand}</div>
@@ -238,16 +239,16 @@ export default function ProductCard({ product: p }) {
         </div>
 
         {/* Price + Cart button */}
-        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-              <span style={{ fontSize: window.innerWidth <= 480 ? 15 : 18, fontWeight: 800, color: '#111827' }}>{formatPrice(p.price)}</span>
+        <div style={{ marginTop: 'auto', display: 'flex', alignItems: isMobile ? 'center' : 'flex-end', justifyContent: 'space-between', gap: isMobile ? 4 : 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: isMobile ? 4 : 6, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: isMobile ? 14 : 18, fontWeight: 800, color: '#111827' }}>{formatPrice(p.price)}</span>
               {p.original_price > p.price && (
-                <span style={{ fontSize: 12, color: '#d1d5db', textDecoration: 'line-through' }}>{formatPrice(p.original_price)}</span>
+                <span style={{ fontSize: isMobile ? 10 : 12, color: '#d1d5db', textDecoration: 'line-through' }}>{formatPrice(p.original_price)}</span>
               )}
             </div>
             {savings > 0 && (
-              <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600 }}>Save {formatPrice(savings)}</div>
+              <div style={{ fontSize: isMobile ? 9 : 11, color: '#16a34a', fontWeight: 600 }}>Save {formatPrice(savings)}</div>
             )}
           </div>
 
@@ -255,20 +256,20 @@ export default function ProductCard({ product: p }) {
             onClick={addToCart}
             disabled={p.stock === 0 || adding}
             style={{
-              width: 40, height: 40, flexShrink: 0,
+              width: isMobile ? 32 : 40, height: isMobile ? 32 : 40, flexShrink: 0,
               background: p.stock === 0 ? '#e5e7eb' : added ? '#16a34a' : '#2563eb',
-              border: 'none', borderRadius: 10,
+              border: 'none', borderRadius: isMobile ? 8 : 10,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               cursor: p.stock === 0 ? 'not-allowed' : 'pointer',
               transition: 'all 0.2s',
               transform: adding ? 'scale(0.9)' : 'scale(1)',
             }}>
             {added ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
+              <svg width={isMobile ? "14" : "18"} height={isMobile ? "14" : "18"} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
+              <svg width={isMobile ? "14" : "18"} height={isMobile ? "14" : "18"} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
                 <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
               </svg>

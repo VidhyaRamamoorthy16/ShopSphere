@@ -197,11 +197,11 @@ export default function Home() {
             <button onClick={() => navigate('/products')} style={{ fontSize: 13, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600, marginLeft: 'auto' }}>View all →</button>
           </div>
           {loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5,1fr)', gap: 14 }}>
               {[...Array(5)].map((_, i) => <div key={i} className="skeleton" style={{ height: 280 }} />)}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 14 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5,1fr)', gap: 14 }}>
               {deals.map(p => <ProductCard key={p.id} product={p} />)}
             </div>
           )}
