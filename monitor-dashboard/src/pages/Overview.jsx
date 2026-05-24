@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts'
+import WorldMap from './WorldMap'
 
 const S = {
   content: { padding:'24px' },
@@ -22,6 +23,26 @@ const COLORS = {
   red: '#FF4757',
   orange: '#FFA502',
   teal: '#00D4AA'
+}
+
+function useAnimatedCounter(target, duration = 1200) {
+  const [count, setCount] = React.useState(0)
+  React.useEffect(() => {
+    if (!target || target === 0) { setCount(0); return }
+    let start = 0
+    const increment = target / (duration / 16)
+    const timer = setInterval(() => {
+      start += increment
+      if (start >= target) {
+        setCount(target)
+        clearInterval(timer)
+      } else {
+        setCount(Math.floor(start))
+      }
+    }, 16)
+    return () => clearInterval(timer)
+  }, [target, duration])
+  return count
 }
 
 const BASE = import.meta.env.VITE_MONITOR_URL || (import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com')
@@ -101,6 +122,20 @@ export default function Overview() {
     threatScore: 62
   })
   const [weekStats, setWeekStats] = useState({ total_7d: 0, blocked_7d: 0, threats_7d: 0, block_rate_pct: 0, daily: [] })
+
+  const animatedTotal = useAnimatedCounter(data.totalRequests)
+  const animatedBlocked = useAnimatedCounter(data.blocked)
+  const animatedRate = useAnimatedCounter(data.rateLimited)
+  const animatedThreat = useAnimatedCounter(data.threatScore)
+  const [liveRequests, setLiveRequests] = useState([])
+
+  useEffect(() => {
+    const BASE = import.meta.env.VITE_MONITOR_URL || 'http://localhost:3000'
+    fetch(`${BASE}/monitor/requests/live`)
+      .then(r => r.json())
+      .then(d => setLiveRequests(d.requests || []))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -191,24 +226,24 @@ export default function Overview() {
       </div>
 
       <div style={S.grid4}>
-        <div style={S.card}>
+        <div style={S.card} className="stat-card-animate">
           <div style={S.label}>Total Requests</div>
-          <div style={S.bigNum(COLORS.purple)}>{data.totalRequests.toLocaleString()}</div>
+          <div style={S.bigNum(COLORS.purple)}>{animatedTotal.toLocaleString()}</div>
           <div style={S.sub}>+12% from yesterday</div>
         </div>
-        <div style={S.card}>
+        <div style={S.card} className="stat-card-animate">
           <div style={S.label}>Blocked</div>
-          <div style={S.bigNum(COLORS.red)}>{data.blocked.toLocaleString()}</div>
+          <div style={S.bigNum(COLORS.red)}>{animatedBlocked.toLocaleString()}</div>
           <div style={S.sub}>Threats prevented</div>
         </div>
-        <div style={S.card}>
+        <div style={S.card} className="stat-card-animate">
           <div style={S.label}>Rate Limited</div>
-          <div style={S.bigNum(COLORS.orange)}>{data.rateLimited}</div>
+          <div style={S.bigNum(COLORS.orange)}>{animatedRate}</div>
           <div style={S.sub}>Active limits</div>
         </div>
-        <div style={S.card}>
+        <div style={S.card} className="stat-card-animate">
           <div style={S.label}>Threat Score</div>
-          <div style={S.bigNum(COLORS.orange)}>{data.threatScore}/100</div>
+          <div style={S.bigNum(COLORS.orange)}>{animatedThreat}/100</div>
           <div style={S.sub}>Elevated risk</div>
         </div>
       </div>
@@ -216,14 +251,50 @@ export default function Overview() {
       <div style={S.grid2}>
         <div style={S.card}>
           <div style={{...S.label, marginBottom:'16px'}}>Requests per Minute</div>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={lineData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2D2D4E" />
-              <XAxis dataKey="minute" stroke="#8888AA" fontSize={11} />
-              <YAxis stroke="#8888AA" fontSize={11} />
-              <Tooltip contentStyle={{background:'#1A1A2E', border:'1px solid #2D2D4E', borderRadius:'8px'}} />
-              <Line type="monotone" dataKey="value" stroke={COLORS.purple} strokeWidth={2} dot={false} />
-            </LineChart>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={lineData}
+              margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="requestGradient" x1="0" y1="0"
+                                x2="0" y2="1">
+                  <stop offset="5%"  stopColor="#6C63FF" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#6C63FF" stopOpacity={0.0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3"
+                             stroke="rgba(255,255,255,0.05)"/>
+              <XAxis dataKey="minute"
+                     tick={{ fill: '#8888AA', fontSize: 11 }}
+                     axisLine={{ stroke: '#2D2D4E' }}
+                     tickLine={false}/>
+              <YAxis tick={{ fill: '#8888AA', fontSize: 11 }}
+                     axisLine={false} tickLine={false}/>
+              <Tooltip
+                contentStyle={{
+                  background: '#1A1A2E',
+                  border: '1px solid #2D2D4E',
+                  borderRadius: '8px',
+                  color: '#EAEAF5',
+                  fontSize: '12px'
+                }}
+                cursor={{ stroke: '#6C63FF', strokeWidth: 1,
+                          strokeDasharray: '4 4' }}
+              />
+              <Area
+                type="monotone"
+                dataKey="value"
+                stroke="#6C63FF"
+                strokeWidth={2.5}
+                fill="url(#requestGradient)"
+                dot={false}
+                activeDot={{
+                  r: 5,
+                  fill: '#6C63FF',
+                  stroke: '#EAEAF5',
+                  strokeWidth: 2
+                }}
+              />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
 
@@ -249,6 +320,8 @@ export default function Overview() {
           </div>
         </div>
       </div>
+
+      <WorldMap requests={liveRequests || []} />
 
       <div style={S.grid4}>
         <div style={S.card}>
