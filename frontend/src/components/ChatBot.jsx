@@ -180,6 +180,121 @@ const QUICK_REPLIES = [
   '⭐ Top rated products',
 ]
 
+// ── Smart fallback when Claude API is unavailable ──────────────────────
+function getSmartFallback(userText, products) {
+  const q = userText.toLowerCase()
+
+  // Coupon questions
+  if (q.includes('coupon') || q.includes('discount') || q.includes('code') || q.includes('offer')) {
+    return `Here are all available coupon codes! 🎁\n\n• **SHIELD10** — 10% off any order\n• **SAVE500** — $50 off orders above $200\n• **LUXURY20** — 20% off orders above $500\n• **WELCOME15** — 15% off any order\n• **FIRST50** — 50% off your first order (min $100)\n• **FREESHIP** — Free shipping on orders over $99\n\nApply at checkout! 🛒`
+  }
+
+  // Shipping questions
+  if (q.includes('ship') || q.includes('deliver') || q.includes('arrival')) {
+    return `🚚 **Shipping Info:**\n\nStandard delivery: 3–5 business days\nExpress delivery: 1–2 days (available at checkout)\nFree shipping on orders over $99 (use code FREESHIP)\n\nAll orders are tracked and you'll receive an email confirmation! 📦`
+  }
+
+  // Return questions
+  if (q.includes('return') || q.includes('refund') || q.includes('exchange')) {
+    return `↩️ **Return Policy:**\n\n30-day hassle-free returns on all products.\n\nSteps:\n1. Go to Dashboard → My Orders\n2. Click "Return Item"\n3. We'll arrange pickup within 2 days\n4. Refund processed in 5–7 business days\n\nNo questions asked! 😊`
+  }
+
+  // Payment questions
+  if (q.includes('pay') || q.includes('payment') || q.includes('upi') || q.includes('card')) {
+    return `💳 **Payment Options:**\n\n• Credit/Debit Cards (Visa, Mastercard, Amex)\n• UPI (GPay, PhonePe, Paytm)\n• Net Banking\n• Cash on Delivery (COD)\n\nAll payments are secured by our AI gateway with 256-bit SSL encryption! 🔒`
+  }
+
+  // Order questions
+  if (q.includes('order') || q.includes('track') || q.includes('status')) {
+    return `📦 **Order Tracking:**\n\nGo to **Dashboard → My Orders** to see all your orders and track their status in real-time.\n\nYou'll also get email updates at every stage! Need help with a specific order? Login and check your dashboard. 🛒`
+  }
+
+  // Phone/mobile search
+  if (q.includes('phone') || q.includes('mobile') || q.includes('smartphone')) {
+    const phones = products.filter(p => p.category === 'Mobiles').slice(0, 3)
+    if (phones.length > 0) {
+      const list = phones.map(p => `• ${p.name} — $${parseFloat(p.price).toFixed(2)}`).join('\n')
+      return `📱 **Top Mobile Phones:**\n\n${list}\n\nSee all mobiles →\nPRODUCTS: ${JSON.stringify(phones.map(p => ({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, category: p.category })))}`
+    }
+  }
+
+  // Laptop/electronics search
+  if (q.includes('laptop') || q.includes('computer') || q.includes('macbook') || q.includes('electronics')) {
+    const electronics = products.filter(p => p.category === 'Electronics').slice(0, 3)
+    if (electronics.length > 0) {
+      return `💻 **Top Electronics:**\n\nHere are some great picks!\nPRODUCTS: ${JSON.stringify(electronics.map(p => ({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, category: p.category })))}`
+    }
+  }
+
+  // Fashion search
+  if (q.includes('fashion') || q.includes('cloth') || q.includes('shoe') || q.includes('wear') || q.includes('dress')) {
+    const fashion = products.filter(p => p.category === 'Fashion').slice(0, 3)
+    if (fashion.length > 0) {
+      return `👟 **Popular Fashion:**\n\nPRODUCTS: ${JSON.stringify(fashion.map(p => ({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, category: p.category })))}`
+    }
+  }
+
+  // Best deals / top rated
+  if (q.includes('deal') || q.includes('best') || q.includes('top') || q.includes('popular') || q.includes('recommend')) {
+    const top = products
+      .sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0))
+      .slice(0, 3)
+    if (top.length > 0) {
+      return `⭐ **Top Rated Products:**\n\nHere are our highest rated picks!\nPRODUCTS: ${JSON.stringify(top.map(p => ({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, category: p.category })))}`
+    }
+  }
+
+  // Price based search
+  const underMatch = q.match(/under\s*\$?(\d+)/)
+  if (underMatch) {
+    const maxPrice = parseFloat(underMatch[1])
+    const affordable = products
+      .filter(p => parseFloat(p.price) <= maxPrice)
+      .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+      .slice(0, 3)
+    if (affordable.length > 0) {
+      return `💰 **Products under $${maxPrice}:**\n\nPRODUCTS: ${JSON.stringify(affordable.map(p => ({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, category: p.category })))}`
+    }
+    return `😔 I couldn't find products under $${maxPrice}. Try a higher budget or browse our Products page!`
+  }
+
+  // Gift ideas
+  if (q.includes('gift') || q.includes('present')) {
+    const gifts = products.filter(p => parseFloat(p.price) < 100).slice(0, 3)
+    if (gifts.length > 0) {
+      return `🎁 **Gift Ideas under $100:**\n\nPRODUCTS: ${JSON.stringify(gifts.map(p => ({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, category: p.category })))}`
+    }
+  }
+
+  // Books
+  if (q.includes('book') || q.includes('read')) {
+    const books = products.filter(p => p.category === 'Books').slice(0, 3)
+    if (books.length > 0) {
+      return `📚 **Popular Books:**\n\nPRODUCTS: ${JSON.stringify(books.map(p => ({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, category: p.category })))}`
+    }
+  }
+
+  // Sports
+  if (q.includes('sport') || q.includes('fitness') || q.includes('gym') || q.includes('exercise')) {
+    const sports = products.filter(p => p.category === 'Sports').slice(0, 3)
+    if (sports.length > 0) {
+      return `⚽ **Sports & Fitness:**\n\nPRODUCTS: ${JSON.stringify(sports.map(p => ({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, category: p.category })))}`
+    }
+  }
+
+  // Hello / greetings
+  if (q.includes('hi') || q.includes('hello') || q.includes('hey') || q.length < 5) {
+    return `Hey there! 👋 I'm ShopBot!\n\nI can help you:\n• 🔍 Find products by name, category, or budget\n• 🎁 Suggest gifts\n• 💳 Explain coupons and payment\n• 🚚 Answer shipping & return questions\n\nWhat are you looking for today?`
+  }
+
+  // Default — show top products
+  const defaultTop = products
+    .sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0))
+    .slice(0, 3)
+
+  return `I can help you find great products! 🛍️ Here are some top picks:\n\nPRODUCTS: ${JSON.stringify(defaultTop.map(p => ({ id: p.id, name: p.name, price: p.price, image_url: p.image_url, category: p.category })))}\n\nOr try asking: "Show me phones", "laptops under $1500", "best deals", or any question!`
+}
+
 // ── MAIN CHATBOT COMPONENT ──────────────────────────────────────────────
 export default function ChatBot() {
   const navigate = useNavigate()
@@ -275,13 +390,10 @@ export default function ChatBot() {
 
     } catch (err) {
       console.error('Claude API error:', err)
-      let errorMsg = "Sorry, I'm having trouble connecting right now. 😅"
-      if (err.message.includes('401') || err.message.includes('api_key')) {
-        errorMsg = "API key not configured. Please add VITE_CLAUDE_API_KEY to your .env file."
-      } else if (err.message.includes('429')) {
-        errorMsg = "I'm getting too many requests. Please wait a moment and try again!"
-      }
-      setMessages(prev => [...prev, { role: 'assistant', content: errorMsg }])
+
+      // Try to give a smart fallback response based on user message
+      const fallback = getSmartFallback(userText, products)
+      setMessages(prev => [...prev, { role: 'assistant', content: fallback }])
     } finally {
       setLoading(false)
     }
