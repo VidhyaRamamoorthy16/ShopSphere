@@ -3,6 +3,7 @@ import { startFrontendKeepAlive } from './utils/preWarmServers'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { CartProvider } from './context/CartContext'
 import ToastContainer from './components/Toast'
+import ChatBot from './components/ChatBot'
 
 // Lazy load pages for faster initial load
 const Home        = lazy(() => import('./pages/Home'))
@@ -69,6 +70,7 @@ export default function App() {
             <Route path="*"               element={<NotFound />} />
           </Routes>
         </Suspense>
+        <ChatBot />
       </Router>
     </CartProvider>
   )
