@@ -212,7 +212,35 @@ export default function Cart() {
           <div style={s.sumRow}><span>Savings</span><span style={{ color: 'var(--accent)' }}>− {formatPrice(savings)}</span></div>
           {discount > 0 && <div style={s.sumRow}><span>Coupon Discount</span><span style={{ color: 'var(--accent)' }}>− {formatPrice(discount)}</span></div>}
           <div style={s.sumTotal}><span>Total</span><span>{formatPrice(total)}</span></div>
-          <button style={s.placeBtn} onClick={() => navigate('/checkout')}>Place Order</button>
+          <button
+            onClick={() => {
+              if (!localStorage.getItem('token')) {
+                toast.info('Please login to checkout')
+                navigate('/login')
+                return
+              }
+              navigate('/checkout')
+            }}
+            style={{
+              width: '100%',
+              background: '#16a34a',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 12,
+              padding: '14px',
+              fontSize: 16,
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#15803d'}
+            onMouseLeave={e => e.currentTarget.style.background = '#16a34a'}>
+            🛍️ Proceed to Checkout
+          </button>
         </div>
       </div>
       <Footer />

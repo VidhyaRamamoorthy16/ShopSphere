@@ -439,30 +439,80 @@ app.delete('/api/cart/:product_id', authenticateToken, async (req, res) => {
 
 app.post('/api/orders', authenticateToken, async (req, res) => {
   try {
-    const { shipping_address, payment_method } = req.body
-    const { data: cartItems } = await supabase
-      .from('cart').select('*, products(*)').eq('user_id', req.user.id)
-    if (!cartItems || cartItems.length === 0)
-      return res.status(400).json({ error: 'Cart is empty' })
-    const total_amount = cartItems.reduce(
-      (sum, item) => sum + (item.products.price * item.quantity), 0
-    )
+    const {
+      items = [],
+      total_amount,
+      subtotal,
+      shipping_amount = 0,
+      discount_amount = 0,
+      coupon_code     = null,
+      payment_method  = 'cod',
+      payment_status  = 'pending',
+      shipping_address,
+      status          = 'confirmed',
+    } = req.body
+
+    if (!items.length)  return res.status(400).json({ error: 'No items in order' })
+    if (!total_amount)  return res.status(400).json({ error: 'total_amount required' })
+
+    // 1. Create the order
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .insert({ user_id: req.user.id, total_amount, shipping_address, payment_method, status: 'confirmed' })
-      .select().single()
+      .insert([{
+        user_id:          req.user.id,
+        total_amount:     parseFloat(total_amount),
+        subtotal:         parseFloat(subtotal || total_amount),
+        shipping_amount:  parseFloat(shipping_amount || 0),
+        discount_amount:  parseFloat(discount_amount || 0),
+        coupon_code,
+        payment_method,
+        payment_status,
+        shipping_address: typeof shipping_address === 'string' ? shipping_address : JSON.stringify(shipping_address),
+        status,
+        tracking_number:  'SS' + Date.now().toString().slice(-8),
+      }])
+      .select()
+      .single()
+
     if (orderError) throw orderError
-    const orderItems = cartItems.map(item => ({
-      order_id: order.id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      price: item.products.price
+
+    // 2. Create order items
+    const orderItems = items.map(item => ({
+      order_id:   order.id,
+      product_id: String(item.product_id),
+      quantity:   parseInt(item.quantity) || 1,
+      price:      parseFloat(item.price) || 0,
+      name:       item.name || '',
     }))
-    await supabase.from('order_items').insert(orderItems)
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems)
+
+    if (itemsError) throw itemsError
+
+    // 3. Clear user's cart
     await supabase.from('cart').delete().eq('user_id', req.user.id)
-    res.status(201).json({ order, message: 'Order placed successfully' })
-  } catch (e) {
-    res.status(500).json({ error: e.message })
+
+    // 4. Create notification
+    await supabase.from('notifications').insert([{
+      user_id: req.user.id,
+      title:   'Order Confirmed! 🎉',
+      message: `Your order #SS${String(order.id).slice(-8).toUpperCase()} for $${parseFloat(total_amount).toFixed(2)} has been placed successfully.`,
+      type:    'success',
+      read:    false,
+    }])
+
+    res.status(201).json({
+      success: true,
+      order,
+      order_id: order.id,
+      message: 'Order placed successfully',
+      tracking_number: order.tracking_number,
+    })
+  } catch (err) {
+    console.error('Order creation error:', err)
+    res.status(500).json({ error: err.message || 'Failed to create order' })
   }
 })
 
@@ -794,24 +844,6 @@ app.put('/api/auth/password', authenticateToken, async (req, res) => {
     const new_hash = await bcrypt.hash(new_password, 10)
     await supabase.from('users').update({ password_hash: new_hash }).eq('id', req.user.id)
     res.json({ message: 'Password updated successfully' })
-  } catch (e) { res.status(500).json({ error: e.message }) }
-})
-
-// Modified order creation with notification
-app.post('/api/orders', authenticateToken, async (req, res) => {
-  try {
-    const { items, total_amount, shipping_address, coupon_code } = req.body
-    if (!items?.length || !shipping_address) return res.status(400).json({ error: 'Items and shipping address required' })
-    const { data: order, error } = await supabase.from('orders').insert({
-      user_id: req.user.id, total_amount, shipping_address, coupon_code,
-      status: 'pending', created_at: new Date().toISOString()
-    }).select().single()
-    if (error) throw error
-    const orderItems = items.map(i => ({ order_id: order.id, product_id: i.product_id, quantity: i.quantity, price: i.price }))
-    await supabase.from('order_items').insert(orderItems)
-    await supabase.from('cart').delete().eq('user_id', req.user.id)
-    await createNotification(req.user.id, 'Order Confirmed', `Your order #${order.id.slice(0,8).toUpperCase()} has been placed. Total: ₹${total_amount}`, 'success', `/orders/${order.id}/track`)
-    res.status(201).json({ order: { ...order, items: orderItems }, message: 'Order placed successfully' })
   } catch (e) { res.status(500).json({ error: e.message }) }
 })
 
