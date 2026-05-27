@@ -51,16 +51,83 @@ export default function Orders() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`${API_BASE}/api/orders`, { headers: getHeaders() })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      // Try gateway first, fallback to backend directly
+      let res
+      try {
+        res = await fetch(`${API_BASE}/api/orders`, { headers: getHeaders() })
+      } catch {
+        res = await fetch(`http://localhost:8000/api/orders`, { headers: getHeaders() })
+      }
+
+      if (res.status === 401 || res.status === 403) {
+        // Token expired — redirect to login
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
+        return
+      }
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || `Server returned ${res.status}`)
+      }
+
       const data = await res.json()
       const list = data.orders || data || []
       setOrders(Array.isArray(list) ? list : [])
     } catch (err) {
       console.error('Orders fetch error:', err)
-      setError('Failed to load orders. Please try again.')
+      // If no orders exist yet, show empty state (not error)
+      if (err.message.includes('404') || err.message.includes('not found')) {
+        setOrders([])
+      } else {
+        setError(`${err.message} — Make sure backend is running on port 8000`)
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const cancelOrder = async (orderId, e) => {
+    e.stopPropagation()
+
+    const confirmed = window.confirm(
+      'Are you sure you want to cancel this order?\n\nThis action cannot be undone.'
+    )
+    if (!confirmed) return
+
+    try {
+      // Try gateway first, fallback to backend
+      let res
+      try {
+        res = await fetch(`${API_BASE}/api/orders/${orderId}/cancel`, {
+          method: 'PATCH',
+          headers: getHeaders(),
+          body: JSON.stringify({ status: 'cancelled' }),
+        })
+      } catch {
+        res = await fetch(`http://localhost:8000/api/orders/${orderId}/cancel`, {
+          method: 'PATCH',
+          headers: getHeaders(),
+          body: JSON.stringify({ status: 'cancelled' }),
+        })
+      }
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to cancel order')
+      }
+
+      // Update order status locally without refetching
+      setOrders(prev =>
+        prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' } : o)
+      )
+
+      // Show success toast
+      alert('✅ Order cancelled successfully. Refund will be processed in 5–7 business days if payment was made.')
+    } catch (err) {
+      console.error('Cancel error:', err)
+      alert(`Failed to cancel: ${err.message}`)
     }
   }
 
@@ -327,12 +394,18 @@ export default function Orders() {
                       </button>
                     )}
                     {(order.status === 'confirmed' || order.status === 'pending') && (
-                      <button style={{
-                        background: '#fef2f2', color: '#dc2626',
-                        border: '1.5px solid #fecaca', borderRadius: 10,
-                        padding: '9px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                      }}>
-                        ❌ Cancel
+                      <button
+                        onClick={(e) => cancelOrder(order.id, e)}
+                        style={{
+                          background: '#fef2f2', color: '#dc2626',
+                          border: '1.5px solid #fecaca', borderRadius: 10,
+                          padding: '9px 14px', fontSize: 13, fontWeight: 600,
+                          cursor: 'pointer', transition: 'all 0.15s',
+                          display: 'flex', alignItems: 'center', gap: 5,
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background='#fee2e2'; e.currentTarget.style.borderColor='#f87171' }}
+                        onMouseLeave={e => { e.currentTarget.style.background='#fef2f2'; e.currentTarget.style.borderColor='#fecaca' }}>
+                        ❌ Cancel Order
                       </button>
                     )}
                     {order.status === 'delivered' && (

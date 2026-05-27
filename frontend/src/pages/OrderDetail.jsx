@@ -46,6 +46,27 @@ export default function OrderDetail() {
     } finally { setLoading(false) }
   }
 
+  const cancelOrder = async () => {
+    const confirmed = window.confirm('Cancel this order? This cannot be undone.')
+    if (!confirmed) return
+
+    try {
+      const res = await fetch(`${API_BASE}/api/orders/${id}/cancel`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ status: 'cancelled' }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to cancel')
+      }
+      alert('Order cancelled successfully!')
+      fetchOrder() // Refresh order detail
+    } catch (err) {
+      alert(`Error: ${err.message}`)
+    }
+  }
+
   if (loading) return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'#f9fafb' }}>
       <div style={{ fontSize:14, color:'#6b7280' }}>Loading order details...</div>
@@ -236,6 +257,19 @@ export default function OrderDetail() {
             }}>
               ← All Orders
             </button>
+            {(order.status === 'confirmed' || order.status === 'pending') && (
+              <button
+                onClick={cancelOrder}
+                style={{
+                  width:'100%',
+                  background: '#fef2f2', color: '#dc2626',
+                  border: '1.5px solid #fecaca', borderRadius: 12,
+                  padding: '12px', fontSize: 14, fontWeight: 700,
+                  cursor: 'pointer',
+                }}>
+                ❌ Cancel Order
+              </button>
+            )}
             <button onClick={() => navigate('/products')} style={{
               width:'100%', background:'#2563eb', color:'#fff',
               border:'none', borderRadius:12, padding:'12px',

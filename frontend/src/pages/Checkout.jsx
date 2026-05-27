@@ -112,6 +112,7 @@ export default function Checkout() {
           quantity:   i.quantity,
           price:      parseFloat(i.products?.price || i.price || 0),
           name:       i.products?.name || i.name,
+          image_url:  i.products?.image_url || i.image_url || null,
         })),
         total_amount:    total,
         subtotal:        subtotal,

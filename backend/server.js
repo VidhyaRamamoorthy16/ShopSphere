@@ -480,16 +480,36 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     if (orderError) throw orderError
 
     // 2. Create order items
-    const orderItems = items.map(item => {
-      const itemData = {
+    const orderItems = await Promise.all(items.map(async (item) => {
+      let image_url = item.image_url || null
+
+      // If image_url not provided, fetch it from products table
+      if (!image_url && item.product_id) {
+        try {
+          const { data: product } = await supabase
+            .from('products')
+            .select('image_url, name')
+            .eq('id', String(item.product_id))
+            .single()
+          if (product) {
+            image_url = product.image_url
+            // Also use product name if not provided
+            if (!item.name && product.name) item.name = product.name
+          }
+        } catch (e) {
+          console.log('Could not fetch product image:', e.message)
+        }
+      }
+
+      return {
         order_id:   order.id,
         product_id: String(item.product_id),
         quantity:   parseInt(item.quantity) || 1,
         price:      parseFloat(item.price) || 0,
+        name:       item.name || 'Product',
+        image_url:  image_url,
       }
-      if (item.name) itemData.name = item.name
-      return itemData
-    })
+    }))
 
     const { error: itemsError } = await supabase
       .from('order_items')
@@ -524,45 +544,62 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 
 app.get('/api/orders', authenticateToken, async (req, res) => {
   try {
+    // First try with order_items join
+    let orders = []
+
     const { data, error } = await supabase
       .from('orders')
-      .select(`
-        *,
-        order_items (
-          id, product_id, name, quantity, price, image_url
-        )
-      `)
+      .select('*')
       .eq('user_id', req.user.id)
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    res.json({ orders: data || [], total: (data || []).length })
+    orders = data || []
+
+    // Now fetch order_items separately for each order
+    for (let order of orders) {
+      try {
+        const { data: items } = await supabase
+          .from('order_items')
+          .select('*')
+          .eq('order_id', order.id)
+        order.order_items = items || []
+      } catch {
+        order.order_items = []
+      }
+    }
+
+    res.json({ orders, total: orders.length })
   } catch (err) {
-    console.error('Orders fetch error:', err)
+    console.error('Orders fetch error:', err.message)
     res.status(500).json({ error: err.message })
   }
 })
 
 app.get('/api/orders/:id', authenticateToken, async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data: order, error } = await supabase
       .from('orders')
-      .select(`
-        *,
-        order_items (
-          id, product_id, name, quantity, price, image_url
-        )
-      `)
+      .select('*')
       .eq('id', req.params.id)
       .eq('user_id', req.user.id)
       .single()
 
-    if (error || !data) {
+    if (error || !order) {
       return res.status(404).json({ error: 'Order not found' })
     }
-    res.json({ order: data })
+
+    // Fetch items separately
+    const { data: items } = await supabase
+      .from('order_items')
+      .select('*')
+      .eq('order_id', order.id)
+
+    order.order_items = items || []
+
+    res.json({ order })
   } catch (err) {
-    console.error('Order detail error:', err)
+    console.error('Order detail error:', err.message)
     res.status(500).json({ error: err.message })
   }
 })
@@ -584,6 +621,67 @@ app.patch('/api/orders/:id/status', authenticateToken, async (req, res) => {
     res.json({ success: true, order: data })
   } catch (err) {
     res.status(500).json({ error: err.message })
+  }
+})
+
+// PATCH cancel an order
+app.patch('/api/orders/:id/cancel', authenticateToken, async (req, res) => {
+  try {
+    // First check the order belongs to this user and is cancellable
+    const { data: existing, error: fetchErr } = await supabase
+      .from('orders')
+      .select('id, status, user_id, payment_method, payment_status, total_amount')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .single()
+
+    if (fetchErr || !existing) {
+      return res.status(404).json({ error: 'Order not found' })
+    }
+
+    const cancellable = ['confirmed', 'pending', 'packed']
+    if (!cancellable.includes(existing.status)) {
+      return res.status(400).json({
+        error: `Cannot cancel order with status "${existing.status}". Only confirmed or packed orders can be cancelled.`
+      })
+    }
+
+    // Update order status to cancelled
+    const { data: updated, error: updateErr } = await supabase
+      .from('orders')
+      .update({
+        status:        'cancelled',
+        updated_at:    new Date().toISOString(),
+        notes:         `Cancelled by customer on ${new Date().toLocaleDateString()}`,
+      })
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .select()
+      .single()
+
+    if (updateErr) throw updateErr
+
+    // Create cancellation notification
+    await supabase.from('notifications').insert([{
+      user_id: req.user.id,
+      title:   'Order Cancelled',
+      message: `Your order #SS${String(req.params.id).slice(-8).toUpperCase()} has been cancelled. ${
+        existing.payment_status === 'paid'
+          ? 'Refund of $' + parseFloat(existing.total_amount).toFixed(2) + ' will be processed in 5–7 business days.'
+          : 'No charges were made.'
+      }`,
+      type:    'info',
+      read:    false,
+    }]).catch(() => {})
+
+    res.json({
+      success: true,
+      message: 'Order cancelled successfully',
+      order:   updated,
+    })
+  } catch (err) {
+    console.error('Cancel order error:', err)
+    res.status(500).json({ error: err.message || 'Failed to cancel order' })
   }
 })
 
