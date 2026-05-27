@@ -456,34 +456,40 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     if (!total_amount)  return res.status(400).json({ error: 'total_amount required' })
 
     // 1. Create the order
+    const orderData = {
+      user_id:          req.user.id,
+      total_amount:     parseFloat(total_amount),
+      payment_method,
+      shipping_address: typeof shipping_address === 'string' ? shipping_address : JSON.stringify(shipping_address),
+      status: 'confirmed',
+    }
+    // Add optional fields only if they have values (columns may not exist in DB)
+    if (subtotal) orderData.subtotal = parseFloat(subtotal)
+    if (shipping_amount) orderData.shipping_amount = parseFloat(shipping_amount)
+    if (discount_amount) orderData.discount_amount = parseFloat(discount_amount)
+    if (coupon_code) orderData.coupon_code = coupon_code
+    if (payment_status) orderData.payment_status = payment_status
+    orderData.tracking_number = 'SS' + Date.now().toString().slice(-8)
+
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .insert([{
-        user_id:          req.user.id,
-        total_amount:     parseFloat(total_amount),
-        subtotal:         parseFloat(subtotal || total_amount),
-        shipping_amount:  parseFloat(shipping_amount || 0),
-        discount_amount:  parseFloat(discount_amount || 0),
-        coupon_code,
-        payment_method,
-        payment_status,
-        shipping_address: typeof shipping_address === 'string' ? shipping_address : JSON.stringify(shipping_address),
-        status,
-        tracking_number:  'SS' + Date.now().toString().slice(-8),
-      }])
+      .insert([orderData])
       .select()
       .single()
 
     if (orderError) throw orderError
 
     // 2. Create order items
-    const orderItems = items.map(item => ({
-      order_id:   order.id,
-      product_id: String(item.product_id),
-      quantity:   parseInt(item.quantity) || 1,
-      price:      parseFloat(item.price) || 0,
-      name:       item.name || '',
-    }))
+    const orderItems = items.map(item => {
+      const itemData = {
+        order_id:   order.id,
+        product_id: String(item.product_id),
+        quantity:   parseInt(item.quantity) || 1,
+        price:      parseFloat(item.price) || 0,
+      }
+      if (item.name) itemData.name = item.name
+      return itemData
+    })
 
     const { error: itemsError } = await supabase
       .from('order_items')
@@ -520,13 +526,64 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('orders')
-      .select('*, order_items(*, products(name, image_url, brand, price))')
+      .select(`
+        *,
+        order_items (
+          id, product_id, name, quantity, price, image_url
+        )
+      `)
       .eq('user_id', req.user.id)
       .order('created_at', { ascending: false })
+
     if (error) throw error
-    res.json({ orders: data })
-  } catch (e) {
-    res.status(500).json({ error: e.message })
+    res.json({ orders: data || [], total: (data || []).length })
+  } catch (err) {
+    console.error('Orders fetch error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/api/orders/:id', authenticateToken, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          id, product_id, name, quantity, price, image_url
+        )
+      `)
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .single()
+
+    if (error || !data) {
+      return res.status(404).json({ error: 'Order not found' })
+    }
+    res.json({ order: data })
+  } catch (err) {
+    console.error('Order detail error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.patch('/api/orders/:id/status', authenticateToken, async (req, res) => {
+  try {
+    const { status } = req.body
+    const validStatuses = ['confirmed','packed','shipped','delivered','cancelled']
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' })
+    }
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', req.params.id)
+      .select()
+      .single()
+    if (error) throw error
+    res.json({ success: true, order: data })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
   }
 })
 

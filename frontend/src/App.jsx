@@ -18,6 +18,8 @@ const Contact     = lazy(() => import('./pages/Contact'))
 const OrderTracking = lazy(() => import('./pages/OrderTracking'))
 const Checkout     = lazy(() => import('./pages/Checkout'))
 const OrderSuccess = lazy(() => import('./pages/OrderSuccess'))
+const Orders       = lazy(() => import('./pages/Orders'))
+const OrderDetail  = lazy(() => import('./pages/OrderDetail'))
 
 const NotFound = () => (
   <div style={{textAlign:'center',padding:'4rem'}}>
@@ -71,6 +73,8 @@ export default function App() {
             <Route path="/orders/:id/track" element={<PrivateRoute><OrderTracking /></PrivateRoute>} />
             <Route path="/checkout"        element={<PrivateRoute><Checkout /></PrivateRoute>} />
             <Route path="/order-success"   element={<PrivateRoute><OrderSuccess /></PrivateRoute>} />
+            <Route path="/orders"         element={<PrivateRoute><Orders /></PrivateRoute>} />
+            <Route path="/orders/:id"     element={<PrivateRoute><OrderDetail /></PrivateRoute>} />
             <Route path="*"               element={<NotFound />} />
           </Routes>
         </Suspense>
