@@ -261,7 +261,7 @@ export default function Overview() {
       <div style={S.grid2(isMobile)}>
         <div style={S.card}>
           <div style={{...S.label, marginBottom:'16px'}}>Requests per Minute</div>
-          <div style={{ width: '100%', height: chartHeight, minWidth: 0 }}>
+          <div style={{ width: '100%', height: chartHeight, minWidth: 0, minHeight: isMobile ? '220px' : 'auto' }}>
             <ResponsiveContainer width="100%" height="100%" debounce={50}>
               <AreaChart data={lineData}
               margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
@@ -312,7 +312,7 @@ export default function Overview() {
 
         <div style={S.card}>
           <div style={{...S.label, marginBottom:'16px'}}>Request Breakdown</div>
-          <div style={{ width: '100%', height: pieChartHeight, minWidth: 0 }}>
+          <div style={{ width: '100%', height: pieChartHeight, minWidth: 0, minHeight: isMobile ? '220px' : 'auto' }}>
             <ResponsiveContainer width="100%" height="100%" debounce={50}>
               <PieChart>
                 <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value">
@@ -363,7 +363,7 @@ export default function Overview() {
       <div style={S.grid2(isMobile)}>
         <div style={S.card}>
           <div style={{...S.label, marginBottom:'16px'}}>Daily Traffic (7 Days)</div>
-          <div style={{ width: '100%', height: chartHeight, minWidth: 0 }}>
+          <div style={{ width: '100%', height: chartHeight, minWidth: 0, minHeight: isMobile ? '220px' : 'auto' }}>
             <ResponsiveContainer width="100%" height="100%" debounce={50}>
               <BarChart data={weekStats.daily}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2D2D4E" />

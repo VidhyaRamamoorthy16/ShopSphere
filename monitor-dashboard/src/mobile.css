@@ -80,3 +80,40 @@
     display: none !important;
   }
 }
+
+@media (max-width: 768px) {
+  /* Fix recharts not rendering on mobile */
+  .recharts-responsive-container {
+    min-height: 200px !important;
+  }
+
+  .recharts-wrapper {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Fix chart parent containers collapsing */
+  div:has(> .recharts-responsive-container) {
+    min-height: 200px !important;
+    width: 100% !important;
+  }
+
+  /* Fix grid making charts too narrow */
+  div[style*="gridTemplateColumns"][style*="1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Fix SVG overflow */
+  .recharts-surface {
+    overflow: visible !important;
+  }
+
+  /* Smaller axis labels on mobile */
+  .recharts-cartesian-axis-tick-value {
+    font-size: 9px !important;
+  }
+
+  .recharts-legend-item-text {
+    font-size: 10px !important;
+  }
+}
