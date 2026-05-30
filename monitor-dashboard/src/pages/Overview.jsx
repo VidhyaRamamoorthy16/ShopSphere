@@ -224,7 +224,7 @@ export default function Overview() {
       background: '#0d1117',
       color: '#fff',
       fontFamily: 'system-ui, sans-serif',
-      overflow: 'hidden',
+      overflowX: 'hidden',
     }}>
       {/* Export Buttons */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'center' }}>
