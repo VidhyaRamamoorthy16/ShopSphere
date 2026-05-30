@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import AttackMap from '../components/AttackMap';
 
 const MONITOR = (import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com')
 
@@ -17,6 +18,13 @@ export default function ThreatDetection() {
   const [threats, setThreats] = useState([]);
   const [stats, setStats] = useState({ total: 0 });
   const [error, setError] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   useEffect(() => {
     const fetchThreats = async () => {
@@ -45,11 +53,11 @@ export default function ThreatDetection() {
   };
 
   const S = {
-    container: { padding: '20px', color: '#e0e0e0' },
+    container: { padding: isMobile ? '12px' : '24px', color: '#e0e0e0', background: '#0d1117', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', overflowX: 'hidden' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' },
     title: { fontSize: '20px', fontWeight: 600, color: '#fff' },
     stats: { fontSize: '14px', color: '#8888AA' },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' },
+    grid: { display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(2, 1fr)', gap: isMobile ? 10 : 16 },
     card: { background: '#1a1a2e', border: '1px solid #2a2a4a', borderRadius: '8px', padding: '16px' },
     threatBadge: (t) => ({ background: getThreatColor(t), color: '#1a1a2e', padding: '4px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 700, display: 'inline-block', marginBottom: '12px' }),
     row: { display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' },
@@ -65,6 +73,9 @@ export default function ThreatDetection() {
         <div style={S.title}>Threat Detection</div>
         <div style={S.stats}>Total threats detected: {stats.total}</div>
       </div>
+
+      {/* Attack Map */}
+      <AttackMap isMobile={isMobile} />
 
       {error && (
         <div style={{ background: 'rgba(255, 71, 87, 0.15)', border: '1px solid rgba(255, 71, 87, 0.3)', padding: '16px', borderRadius: '8px', color: '#FF4757', marginBottom: '20px', fontSize: '14px', lineHeight: '1.5' }}>
