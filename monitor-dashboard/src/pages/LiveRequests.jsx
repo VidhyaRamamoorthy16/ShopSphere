@@ -37,8 +37,15 @@ export default function LiveRequests() {
   const [lastUpdate, setLastUpdate] = useState(null)
   const [error, setError] = useState(null)
   const [wsConnected, setWsConnected] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   const intervalRef = useRef(null)
   const wsRef = useRef(null)
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', h)
+    return () => window.removeEventListener('resize', h)
+  }, [])
 
   const fetchRequests = async () => {
     try {
@@ -144,15 +151,15 @@ export default function LiveRequests() {
   }
 
   const s = {
-    page: { background: '#0F0F1A', minHeight: '100vh', padding: '20px 24px', fontFamily: 'Inter, sans-serif' },
-    topBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
-    title: { fontSize: 20, fontWeight: 600, color: '#EAEAF5', letterSpacing: '-0.02em' },
+    page: { background: '#0F0F1A', minHeight: '100vh', padding: isMobile ? '12px' : '24px', fontFamily: 'Inter, sans-serif', overflowX: 'hidden' },
+    topBar: { display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', justifyContent: 'space-between', marginBottom: isMobile ? 14 : 20, flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? 10 : 0 },
+    title: { fontSize: isMobile ? 18 : 22, fontWeight: 700, color: '#EAEAF5', letterSpacing: '-0.02em', marginBottom: 2 },
     liveBadge: { display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,71,87,0.15)', border: '1px solid rgba(255,71,87,0.3)', borderRadius: 20, padding: '4px 12px', fontSize: 12, color: '#FF4757', fontWeight: 600 },
     liveDot: { width: 7, height: 7, borderRadius: '50%', background: '#FF4757' },
-    controls: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' },
+    controls: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: isMobile ? 12 : 16, overflowX: 'auto', paddingBottom: 4, flexWrap: isMobile ? 'nowrap' : 'wrap' },
     filterBtn: (active) => ({
-      padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: `1px solid ${active ? '#6C63FF' : '#2D2D4E'}`,
-      background: active ? 'rgba(108,99,255,0.2)' : '#1A1A2E', color: active ? '#6C63FF' : '#8888AA', transition: 'all 0.15s'
+      padding: isMobile ? '6px 12px' : '7px 16px', borderRadius: 20, fontSize: isMobile ? 11 : 12, fontWeight: 600, cursor: 'pointer', border: `1.5px solid ${active ? '#2563eb' : '#1f2937'}`,
+      background: active ? 'rgba(37,99,235,0.15)' : 'transparent', color: active ? '#60a5fa' : '#6b7280', transition: 'all 0.15s', whiteSpace: 'nowrap', flexShrink: 0
     }),
     pauseBtn: { padding: '6px 16px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: '1px solid #2D2D4E', background: paused ? 'rgba(255,165,2,0.2)' : '#1A1A2E', color: paused ? '#FFA502' : '#8888AA' },
     updateTime: { fontSize: 11, color: '#8888AA', marginLeft: 'auto' },
@@ -161,120 +168,289 @@ export default function LiveRequests() {
     table: { width: '100%', borderCollapse: 'collapse', fontSize: 12 },
     th: { padding: '10px 12px', textAlign: 'left', color: '#8888AA', fontWeight: 500, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '1px solid #2D2D4E' },
     card: { background: '#1A1A2E', border: '1px solid #2D2D4E', borderRadius: 16, overflow: 'hidden', marginBottom: 16 },
-    statsRow: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 16 },
-    statCard: (color) => ({ background: '#1A1A2E', border: `1px solid #2D2D4E`, borderRadius: 12, padding: '14px 16px', textAlign: 'center' }),
-    statNum: (color) => ({ fontSize: 24, fontWeight: 700, color: color, letterSpacing: '-0.02em' }),
-    statLabel: { fontSize: 11, color: '#8888AA', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.05em' },
+    statsRow: { display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: isMobile ? 8 : 14, marginBottom: isMobile ? 12 : 18 },
+    statCard: (color) => ({ background: '#111827', border: `1px solid #1f2937`, borderRadius: 12, padding: isMobile ? '10px 12px' : '14px 18px', textAlign: 'center' }),
+    statNum: (color) => ({ fontSize: isMobile ? 20 : 26, fontWeight: 800, color: color, letterSpacing: '-0.02em' }),
+    statLabel: { fontSize: isMobile ? 9 : 10, color: '#6b7280', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 },
   }
 
   return (
     <div style={s.page}>
+      {/* Page header */}
       <div style={s.topBar}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={s.title}>Live Requests</div>
-          <div style={s.liveBadge}><div style={s.liveDot} /> LIVE</div>
+        <div>
+          <h2 style={s.title}>Live Requests</h2>
+          <div style={{ fontSize: 11, color: '#6b7280' }}>
+            Real-time API traffic • Polling every 2s
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, padding:'4px 10px', background: wsConnected ? 'rgba(0,229,160,0.1)' : 'rgba(255,184,48,0.1)', borderRadius:20, border:`1px solid ${wsConnected ? 'rgba(0,229,160,0.3)' : 'rgba(255,184,48,0.3)'}` }}>
-            <div style={{ width:6, height:6, borderRadius:'50%', background: wsConnected ? '#00E5A0' : '#FFB830', animation:'pulse 2s infinite' }} />
-            <span style={{ color: wsConnected ? '#00E5A0' : '#FFB830', fontWeight:500 }}>
-              {wsConnected ? 'WebSocket — live' : 'Polling — 2s'}
+
+        {/* Controls */}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <div style={{
+            display:      'flex',
+            alignItems:   'center',
+            gap:          6,
+            background:   '#111827',
+            border:       '1px solid #1f2937',
+            borderRadius: 10,
+            padding:      '6px 12px',
+          }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', animation: 'pulse 1.5s infinite' }}/>
+            <span style={{ fontSize: 11, fontWeight: 600, color: '#10b981' }}>
+              Polling — 2s
             </span>
           </div>
-          <div style={{ fontSize: 12, color: '#8888AA' }}>
-            {lastUpdate ? `Updated ${lastUpdate}` : 'Connecting...'}
-          </div>
+          <button onClick={() => setRequests([])} style={{
+            background:   '#111827',
+            border:       '1px solid #1f2937',
+            borderRadius: 10,
+            padding:      '6px 12px',
+            color:        '#6b7280',
+            fontSize:     11,
+            fontWeight:   600,
+            cursor:       'pointer',
+          }}>
+            🗑 Clear
+          </button>
         </div>
       </div>
 
+      {/* Stat cards — 2x2 on mobile, 4x1 on desktop */}
       <div style={s.statsRow}>
         {[
-          { label: 'Total', count: counts.ALL, color: '#6C63FF' },
-          { label: 'Allowed', count: counts.ALLOWED, color: '#00D4AA' },
-          { label: 'Blocked', count: counts.BLOCKED, color: '#FF4757' },
-          { label: 'Errors', count: counts.ERROR, color: '#8888AA' },
-        ].map(({ label, count, color }) => (
-          <div key={label} style={s.statCard(color)}>
-            <div style={s.statNum(color)}>{count}</div>
-            <div style={s.statLabel}>{label}</div>
+          { label: 'TOTAL',   value: stats.total   || requests.length, color: '#3b82f6' },
+          { label: 'ALLOWED', value: stats.allowed || requests.filter(r => r.action === 'allowed' || (r.status_code >= 200 && r.status_code < 400)).length, color: '#10b981' },
+          { label: 'BLOCKED', value: stats.blocked || requests.filter(r => r.action === 'blocked' || r.status_code >= 400).length, color: '#ef4444' },
+          { label: 'ERRORS',  value: stats.errors  || requests.filter(r => r.status_code >= 500).length, color: '#f59e0b' },
+        ].map(({ label, value, color }) => (
+          <div key={label} style={{
+            background:   '#111827',
+            border:       '1px solid #1f2937',
+            borderRadius: 12,
+            padding:      isMobile ? '10px 12px' : '14px 18px',
+          }}>
+            <div style={{ fontSize: isMobile ? 9 : 10, color: '#6b7280', fontWeight: 700, letterSpacing: '0.06em', marginBottom: 4 }}>{label}</div>
+            <div style={{ fontSize: isMobile ? 20 : 26, fontWeight: 800, color }}>{value}</div>
           </div>
         ))}
       </div>
 
       {error && <div style={s.errorBox}>{error} — Is Monitor API running on port 3000?</div>}
 
+      {/* Filter buttons */}
       <div style={s.controls}>
         {['ALL', 'ALLOWED', 'BLOCKED', 'ERROR'].map(f => (
           <button key={f} style={s.filterBtn(filter === f)} onClick={() => setFilter(f)}>
-            {f} {counts[f] > 0 ? `(${counts[f]})` : ''}
+            {f}
           </button>
         ))}
-        <button style={s.pauseBtn} onClick={() => setPaused(p => !p)}>
-          {paused ? '▶ Resume' : '⏸ Pause'}
-        </button>
-        <button style={{ ...s.pauseBtn, marginLeft: 4 }} onClick={fetchRequests}>↻ Refresh</button>
-        <button onClick={exportCSV}>Export CSV</button>
       </div>
 
+      {/* ── REQUESTS FEED ── */}
       {loading ? (
-        <div style={s.emptyBox}>Loading requests...</div>
+        <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280', fontSize: 14 }}>
+          Loading requests...
+        </div>
       ) : filtered.length === 0 ? (
-        <div style={s.emptyBox}>
-          <div style={{ fontSize: 32, marginBottom: 12 }}>📡</div>
-          <div style={{ marginBottom: 8 }}>No {filter !== 'ALL' ? filter.toLowerCase() + ' ' : ''}requests yet</div>
-          <div style={{ fontSize: 12, color: '#6C63FF', marginTop: 8 }}>
-            Send a request through port 5001 to see it here
+        <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>�</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#fff', marginBottom: 6 }}>
+            No requests yet
           </div>
-          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#8888AA', marginTop: 12, background: '#0F0F1A', padding: '8px 16px', borderRadius: 8, display: 'inline-block' }}>
-            curl http://localhost:5001/api/products
+          <div style={{ fontSize: 13, color: '#6b7280' }}>
+            Browse the ShopSphere store to generate live traffic
           </div>
+          <a
+            href="https://shop-sphere-wine.vercel.app"
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: 'inline-block', marginTop: 14,
+              background: '#2563eb', color: '#fff',
+              borderRadius: 10, padding: '8px 20px',
+              fontSize: 13, fontWeight: 600, textDecoration: 'none',
+            }}>
+            Open Store →
+          </a>
+        </div>
+      ) : isMobile ? (
+        /* ── MOBILE: Card list view ── */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px' }}>
+          {filtered.map((req, i) => {
+            const isBlocked  = req.action === 'blocked'  || req.status_code >= 400
+            const isAllowed  = req.action === 'allowed'  || (req.status_code >= 200 && req.status_code < 300)
+            const statusColor = isBlocked ? '#ef4444' : isAllowed ? '#10b981' : '#f59e0b'
+
+            const methodColor = {
+              GET:    '#3b82f6',
+              POST:   '#10b981',
+              PUT:    '#f59e0b',
+              DELETE: '#ef4444',
+              PATCH:  '#8b5cf6',
+            }[req.method] || '#6b7280'
+
+            return (
+              <div key={i} style={{
+                background:   '#111827',
+                border:       `1px solid ${isBlocked ? 'rgba(239,68,68,0.2)' : '#1f2937'}`,
+                borderRadius: 12,
+                padding:      '12px 14px',
+                borderLeft:   `3px solid ${statusColor}`,
+              }}>
+
+                {/* Row 1: Method + Path + Status */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                  <span style={{
+                    background:   `${methodColor}22`,
+                    color:        methodColor,
+                    border:       `1px solid ${methodColor}44`,
+                    borderRadius: 6,
+                    padding:      '2px 8px',
+                    fontSize:     10,
+                    fontWeight:   700,
+                    flexShrink:   0,
+                  }}>
+                    {req.method || 'GET'}
+                  </span>
+                  <span style={{
+                    fontSize:     12,
+                    color:        '#e5e7eb',
+                    fontWeight:   500,
+                    flex:         1,
+                    overflow:     'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace:   'nowrap',
+                  }}>
+                    {req.endpoint || req.path || '/'}
+                  </span>
+                  <span style={{
+                    fontSize:     11,
+                    fontWeight:   700,
+                    color:        statusColor,
+                    flexShrink:   0,
+                  }}>
+                    {req.status_code || '—'}
+                  </span>
+                </div>
+
+                {/* Row 2: IP + Time + Duration */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 11, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    🌐 {req.ip_address || req.ip || 'unknown'}
+                  </span>
+                  <span style={{ fontSize: 11, color: '#6b7280' }}>
+                    ⏱ {req.duration_ms ? `${parseFloat(req.duration_ms).toFixed(0)}ms` : '—'}
+                  </span>
+                  <span style={{ fontSize: 11, color: '#4b5563', marginLeft: 'auto' }}>
+                    {req.timestamp
+                      ? new Date(req.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+                      : '—'}
+                  </span>
+                </div>
+
+                {/* Row 3: Action badge + threat reason */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                  <span style={{
+                    background:   isBlocked ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+                    color:        isBlocked ? '#ef4444' : '#10b981',
+                    border:       `1px solid ${isBlocked ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}`,
+                    borderRadius: 20,
+                    padding:      '2px 10px',
+                    fontSize:     10,
+                    fontWeight:   700,
+                    textTransform:'uppercase',
+                  }}>
+                    {isBlocked ? '🚫 Blocked' : '✅ Allowed'}
+                  </span>
+                  {req.reason && (
+                    <span style={{
+                      fontSize:   11,
+                      color:      '#f59e0b',
+                      fontWeight: 500,
+                    }}>
+                      ⚠️ {req.reason}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
       ) : (
-        <div style={s.card}>
-          <table style={s.table}>
+        /* ── DESKTOP: Table view ── */
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
             <thead>
-              <tr>
+              <tr style={{ borderBottom: '1px solid #1f2937' }}>
                 {['Time', 'IP Address', 'Method', 'Endpoint', 'Status', 'Duration', 'Action', 'Reason'].map(h => (
-                  <th key={h} style={s.th}>{h}</th>
+                  <th key={h} style={{
+                    padding:   '10px 14px',
+                    textAlign: 'left',
+                    fontSize:  11,
+                    fontWeight:700,
+                    color:     '#6b7280',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    whiteSpace:'nowrap',
+                  }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map((req, i) => {
-                const ac = ACTION_COLORS[req.action] || ACTION_COLORS.ERROR
-                const mc = METHOD_COLORS[req.method] || METHOD_COLORS.GET
+                const isBlocked   = req.action === 'blocked' || req.status_code >= 400
+                const isAllowed   = req.action === 'allowed' || (req.status_code >= 200 && req.status_code < 300)
+                const statusColor = isBlocked ? '#ef4444' : isAllowed ? '#10b981' : '#f59e0b'
+                const methodColor = { GET:'#3b82f6', POST:'#10b981', PUT:'#f59e0b', DELETE:'#ef4444', PATCH:'#8b5cf6' }[req.method] || '#6b7280'
+
                 return (
                   <tr key={i} style={{
-                    borderLeft: `3px solid ${ac.border}`,
-                    background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
-                    transition: 'background 0.15s'
-                  }}>
-                    <td style={{ padding: '10px 12px', color: '#8888AA', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, whiteSpace: 'nowrap' }}>
-                      {formatTime(req.timestamp)}
+                    borderBottom: '1px solid #1f2937',
+                    background:   i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
+                    transition:   'background 0.15s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(37,99,235,0.05)'}
+                  onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)'}>
+                    <td style={{ padding: '10px 14px', fontSize: 11, color: '#6b7280', whiteSpace: 'nowrap' }}>
+                      {req.timestamp
+                        ? new Date(req.timestamp).toLocaleTimeString('en-US', { hour12: false })
+                        : '—'}
                     </td>
-                    <td style={{ padding: '10px 12px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#EAEAF5' }}>
-                      {req.ip || '—'}
+                    <td style={{ padding: '10px 14px', fontSize: 12, color: '#9ca3af', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                      {req.ip_address || req.ip || '—'}
                     </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span style={{ background: mc.bg, color: mc.color, padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>
-                        {req.method}
+                    <td style={{ padding: '10px 14px' }}>
+                      <span style={{
+                        background:   `${methodColor}22`, color: methodColor,
+                        border:       `1px solid ${methodColor}44`,
+                        borderRadius: 6, padding: '2px 8px',
+                        fontSize: 10, fontWeight: 700,
+                      }}>
+                        {req.method || 'GET'}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#EAEAF5', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {req.path}
+                    <td style={{ padding: '10px 14px', fontSize: 12, color: '#e5e7eb', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {req.endpoint || req.path || '/'}
                     </td>
-                    <td style={{ padding: '10px 12px', color: req.status >= 400 ? '#FF4757' : '#00D4AA', fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 600 }}>
-                      {req.status}
+                    <td style={{ padding: '10px 14px', fontSize: 12, fontWeight: 700, color: statusColor }}>
+                      {req.status_code || '—'}
                     </td>
-                    <td style={{ padding: '10px 12px', color: req.duration_ms > 500 ? '#FFA502' : '#8888AA', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
-                      {req.duration_ms}ms
+                    <td style={{ padding: '10px 14px', fontSize: 12, color: '#9ca3af', whiteSpace: 'nowrap' }}>
+                      {req.duration_ms ? `${parseFloat(req.duration_ms).toFixed(0)}ms` : '—'}
                     </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span style={{ background: ac.bg, color: ac.color, border: `1px solid ${ac.border}33`, padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 600 }}>
-                        {req.action}
+                    <td style={{ padding: '10px 14px' }}>
+                      <span style={{
+                        background:   isBlocked ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+                        color:        isBlocked ? '#ef4444' : '#10b981',
+                        border:       `1px solid ${isBlocked ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}`,
+                        borderRadius: 20, padding: '3px 10px',
+                        fontSize: 10, fontWeight: 700,
+                      }}>
+                        {isBlocked ? '🚫 Blocked' : '✅ Allowed'}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#FF4757', fontSize: 11, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '10px 14px', fontSize: 11, color: '#f59e0b', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {req.reason || '—'}
                     </td>
                   </tr>

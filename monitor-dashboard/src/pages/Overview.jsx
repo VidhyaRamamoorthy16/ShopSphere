@@ -286,80 +286,54 @@ export default function Overview() {
         isMobile={isMobile}
       />
 
-      <div style={S.grid2(isMobile)}>
-        <div style={S.card}>
-          <div style={{...S.label, marginBottom:'16px'}}>Requests per Minute</div>
-          <div style={{ width: '100%', height: chartHeight, minWidth: 0, minHeight: isMobile ? '220px' : 'auto' }}>
-            <ResponsiveContainer width="100%" height="100%" debounce={50}>
-              <AreaChart data={lineData}
-              margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="requestGradient" x1="0" y1="0"
-                                x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#6C63FF" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="#6C63FF" stopOpacity={0.0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3"
-                             stroke="rgba(255,255,255,0.05)"/>
-              <XAxis dataKey="minute"
-                     tick={{ fill: '#8888AA', fontSize: 11 }}
-                     axisLine={{ stroke: '#2D2D4E' }}
-                     tickLine={false}/>
-              <YAxis tick={{ fill: '#8888AA', fontSize: 11 }}
-                     axisLine={false} tickLine={false}/>
-              <Tooltip
-                contentStyle={{
-                  background: '#1A1A2E',
-                  border: '1px solid #2D2D4E',
-                  borderRadius: '8px',
-                  color: '#EAEAF5',
-                  fontSize: '12px'
-                }}
-                cursor={{ stroke: '#6C63FF', strokeWidth: 1,
-                          strokeDasharray: '4 4' }}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#6C63FF"
-                strokeWidth={2.5}
-                fill="url(#requestGradient)"
-                dot={false}
-                activeDot={{
-                  r: 5,
-                  fill: '#6C63FF',
-                  stroke: '#EAEAF5',
-                  strokeWidth: 2
-                }}
-              />
-            </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div style={S.card}>
-          <div style={{...S.label, marginBottom:'16px'}}>Request Breakdown</div>
-          <div style={{ width: '100%', height: pieChartHeight, minWidth: 0, minHeight: isMobile ? '220px' : 'auto' }}>
-            <ResponsiveContainer width="100%" height="100%" debounce={50}>
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} dataKey="value">
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{background:'#1A1A2E', border:'1px solid #2D2D4E', borderRadius:'8px'}} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div style={{display:'flex', justifyContent:'center', gap:'16px', marginTop:'8px'}}>
-            {pieData.map(item => (
-              <div key={item.name} style={{display:'flex', alignItems:'center', gap:'6px'}}>
-                <span style={{width:'8px', height:'8px', borderRadius:'50%', background:item.color}}></span>
-                <span style={{fontSize:'12px', color:'#8888AA'}}>{item.name} {item.value}%</span>
-              </div>
-            ))}
-          </div>
+      <div style={S.card}>
+        <div style={{...S.label, marginBottom:'16px'}}>Requests per Minute</div>
+        <div style={{ width: '100%', height: chartHeight, minWidth: 0, minHeight: isMobile ? '220px' : 'auto' }}>
+          <ResponsiveContainer width="100%" height="100%" debounce={50}>
+            <AreaChart data={lineData}
+            margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="requestGradient" x1="0" y1="0"
+                              x2="0" y2="1">
+                <stop offset="5%"  stopColor="#6C63FF" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="#6C63FF" stopOpacity={0.0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3"
+                           stroke="rgba(255,255,255,0.05)"/>
+            <XAxis dataKey="minute"
+                   tick={{ fill: '#8888AA', fontSize: 11 }}
+                   axisLine={{ stroke: '#2D2D4E' }}
+                   tickLine={false}/>
+            <YAxis tick={{ fill: '#8888AA', fontSize: 11 }}
+                   axisLine={false} tickLine={false}/>
+            <Tooltip
+              contentStyle={{
+                background: '#1A1A2E',
+                border: '1px solid #2D2D4E',
+                borderRadius: '8px',
+                color: '#EAEAF5',
+                fontSize: '12px'
+              }}
+              cursor={{ stroke: '#6C63FF', strokeWidth: 1,
+                        strokeDasharray: '4 4' }}
+            />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="#6C63FF"
+              strokeWidth={2.5}
+              fill="url(#requestGradient)"
+              dot={false}
+              activeDot={{
+                r: 5,
+                fill: '#6C63FF',
+                stroke: '#EAEAF5',
+                strokeWidth: 2
+              }}
+            />
+          </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
