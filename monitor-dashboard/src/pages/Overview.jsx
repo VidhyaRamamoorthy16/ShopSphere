@@ -277,6 +277,80 @@ export default function Overview() {
         </div>
       </div>
 
+      {/* No traffic banner */}
+      {(data.total_requests === 0 || data.totalRequests === 0) && (
+        <div style={{
+          background:   'rgba(37,99,235,0.08)',
+          border:       '1px solid rgba(37,99,235,0.2)',
+          borderRadius: 14,
+          padding:      isMobile ? '16px' : '20px 24px',
+          marginBottom: isMobile ? 14 : 20,
+          display:      'flex',
+          alignItems:   isMobile ? 'flex-start' : 'center',
+          gap:          16,
+          flexDirection: isMobile ? 'column' : 'row',
+        }}>
+          <div style={{ fontSize: isMobile ? 28 : 36, flexShrink: 0 }}>📡</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
+              No traffic data yet
+            </div>
+            <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.6, marginBottom: 12 }}>
+              The gateway has no requests logged. Browse the store to generate live traffic — it will appear here within 10 seconds.
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <a
+                href="https://shop-sphere-wine.vercel.app"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  background:     '#2563eb',
+                  color:          '#fff',
+                  borderRadius:   10,
+                  padding:        '8px 18px',
+                  fontSize:       12,
+                  fontWeight:     700,
+                  textDecoration: 'none',
+                }}>
+                🛒 Open Store to Generate Traffic
+              </a>
+              <a
+                href="https://shopsphere-gateway.onrender.com/health"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  background:     'rgba(255,255,255,0.06)',
+                  color:          '#9ca3af',
+                  borderRadius:   10,
+                  padding:        '8px 18px',
+                  fontSize:       12,
+                  fontWeight:     600,
+                  textDecoration: 'none',
+                  border:         '1px solid #1f2937',
+                }}>
+                ⚡ Wake Gateway
+              </a>
+              <a
+                href="https://shopsphere-monitor.onrender.com/monitor/overview"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  background:     'rgba(255,255,255,0.06)',
+                  color:          '#9ca3af',
+                  borderRadius:   10,
+                  padding:        '8px 18px',
+                  fontSize:       12,
+                  fontWeight:     600,
+                  textDecoration: 'none',
+                  border:         '1px solid #1f2937',
+                }}>
+                📡 Check Monitor API
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── SIMPLE DONUT CHART ── */}
       <DonutChart
         total={data.totalRequests || 0}
