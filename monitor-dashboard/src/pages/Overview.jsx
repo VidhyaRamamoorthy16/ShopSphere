@@ -6,6 +6,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar,
 } from 'recharts'
 import WorldMap from './WorldMap'
+import DonutChart from '../components/DonutChart'
 
 const S = {
   content: { padding:'24px' },
@@ -134,9 +135,6 @@ export default function Overview() {
   const animatedRate = useAnimatedCounter(data.rateLimited)
   const animatedThreat = useAnimatedCounter(data.threatScore)
   const [liveRequests, setLiveRequests] = useState([])
-  const [rpmHistory, setRpmHistory] = useState([])
-  const [prevTotal, setPrevTotal] = useState(0)
-  const rpmRef = useRef([])
 
   const isMobile = windowWidth <= 768
   const chartHeight = isMobile ? 200 : 280
@@ -147,37 +145,6 @@ export default function Overview() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
-
-  const MAX_POINTS_DESKTOP = 30
-  const MAX_POINTS_MOBILE  = 15
-
-  const updateRpmHistory = useCallback((currentTotal) => {
-    const now      = new Date()
-    const timeLabel = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
-    const maxPoints = isMobile ? MAX_POINTS_MOBILE : MAX_POINTS_DESKTOP
-
-    setRpmHistory(prev => {
-      const lastTotal = prev.length > 0 ? prev[prev.length - 1]._rawTotal || 0 : 0
-      const rpm       = Math.max(0, currentTotal - lastTotal)
-
-      const recent    = prev.slice(-5)
-      const avgRpm    = recent.length > 0
-        ? recent.reduce((s, p) => s + (p.total || 0), 0) / recent.length
-        : 0
-      const isSpike   = avgRpm > 0 && rpm > avgRpm * 3
-
-      const newPoint = {
-        time:      timeLabel,
-        total:     rpm,
-        blocked:   0,
-        isSpike,
-        _rawTotal: currentTotal,
-      }
-
-      const updated = [...prev, newPoint]
-      return updated.length > maxPoints ? updated.slice(updated.length - maxPoints) : updated
-    })
-  }, [isMobile])
 
   useEffect(() => {
     fetch(`${BASE}/monitor/requests/live`)
@@ -198,21 +165,6 @@ export default function Overview() {
             rateLimited: stats.rate_limited,
             threatScore: stats.threat_score
           })
-          updateRpmHistory(stats.total_requests || 0)
-
-          const blockedCount = stats.blocked_requests || 0
-          setRpmHistory(prev => {
-            if (prev.length === 0) return prev
-            const updated = [...prev]
-            const lastIdx = updated.length - 1
-            const prevBlocked = lastIdx > 0 ? (updated[lastIdx - 1]._rawBlocked || 0) : 0
-            updated[lastIdx] = {
-              ...updated[lastIdx],
-              blocked: Math.max(0, blockedCount - prevBlocked),
-              _rawBlocked: blockedCount,
-            }
-            return updated
-          })
         }
       } catch (e) {
         console.log('Using mock data', e)
@@ -221,7 +173,7 @@ export default function Overview() {
     fetchData()
     const interval = setInterval(fetchData, 10000)
     return () => clearInterval(interval)
-  }, [updateRpmHistory])
+  }, [])
 
   useEffect(() => {
     const fetchWeekStats = async () => {
@@ -325,190 +277,14 @@ export default function Overview() {
         </div>
       </div>
 
-      {/* ── REAL-TIME REQUESTS PER MINUTE CHART ── */}
-      <div style={{
-        background: '#111827',
-        border: '1px solid #1f2937',
-        borderRadius: 16,
-        padding: isMobile ? '14px 12px' : '20px 24px',
-        marginBottom: isMobile ? 14 : 20,
-        overflow: 'hidden',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-          <div>
-            <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#fff', marginBottom: 2 }}>
-              📈 Live Request Traffic
-            </div>
-            <div style={{ fontSize: 11, color: '#6b7280' }}>
-              Updates every 10s — last {isMobile ? 15 : 30} data points
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#065f46', borderRadius: 20, padding: '4px 12px' }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', animation: 'pulse 1.5s infinite' }}/>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#10b981' }}>LIVE</span>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
-          {[
-            { color: '#3b82f6', label: 'Total Requests' },
-            { color: '#ef4444', label: 'Blocked' },
-            { color: '#f59e0b', label: 'Spike detected', dashed: true },
-          ].map(({ color, label, dashed }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div style={{
-                width: 20, height: 2,
-                background: dashed ? 'transparent' : color,
-                borderTop: dashed ? `2px dashed ${color}` : 'none',
-              }}/>
-              <span style={{ fontSize: 11, color: '#9ca3af' }}>{label}</span>
-            </div>
-          ))}
-        </div>
-
-        {rpmHistory.length < 2 ? (
-          <div style={{ height: isMobile ? 180 : 250, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8 }}>
-            <div style={{ fontSize: 24 }}>⏳</div>
-            <div style={{ fontSize: 13, color: '#6b7280', textAlign: 'center' }}>
-              Collecting data... chart appears after 2 polling cycles (20 seconds)
-            </div>
-            <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
-              {[0,1,2].map(i => (
-                <div key={i} style={{
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: '#3b82f6', opacity: 0.5,
-                  animation: `bounce 1.2s ease infinite`,
-                  animationDelay: `${i * 0.2}s`,
-                }}/>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={isMobile ? 180 : 250}>
-            <AreaChart data={rpmHistory} margin={{ top: 5, right: isMobile ? 5 : 20, left: isMobile ? -20 : 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="totalGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="blockedGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false}/>
-
-              <XAxis
-                dataKey="time"
-                tick={{ fill: '#6b7280', fontSize: isMobile ? 9 : 11 }}
-                tickLine={false}
-                axisLine={{ stroke: '#1f2937' }}
-                interval={isMobile ? 4 : 2}
-              />
-
-              <YAxis
-                tick={{ fill: '#6b7280', fontSize: isMobile ? 9 : 11 }}
-                tickLine={false}
-                axisLine={false}
-                hide={isMobile}
-              />
-
-              <Tooltip
-                contentStyle={{
-                  background: '#1f2937',
-                  border: '1px solid #374151',
-                  borderRadius: 10,
-                  fontSize: 12,
-                  color: '#fff',
-                }}
-                formatter={(value, name) => [
-                  value,
-                  name === 'total' ? '📊 Total' : '🚫 Blocked'
-                ]}
-                labelStyle={{ color: '#9ca3af', marginBottom: 4 }}
-              />
-
-              {rpmHistory.map((point, i) =>
-                point.isSpike ? (
-                  <ReferenceLine
-                    key={`spike-${i}`}
-                    x={point.time}
-                    stroke="#f59e0b"
-                    strokeDasharray="4 4"
-                    strokeWidth={1.5}
-                    label={!isMobile ? { value: '⚠️', fill: '#f59e0b', fontSize: 10 } : undefined}
-                  />
-                ) : null
-              )}
-
-              <Area
-                type="monotone"
-                dataKey="total"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                fill="url(#totalGrad)"
-                dot={false}
-                activeDot={{ r: 4, fill: '#3b82f6' }}
-                animationDuration={300}
-              />
-              <Area
-                type="monotone"
-                dataKey="blocked"
-                stroke="#ef4444"
-                strokeWidth={2}
-                fill="url(#blockedGrad)"
-                dot={false}
-                activeDot={{ r: 4, fill: '#ef4444' }}
-                animationDuration={300}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        )}
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)',
-          gap: 8,
-          marginTop: 14,
-          paddingTop: 14,
-          borderTop: '1px solid #1f2937',
-        }}>
-          {[
-            {
-              label: 'Current RPM',
-              value: rpmHistory.length > 0 ? rpmHistory[rpmHistory.length - 1].total : 0,
-              color: '#3b82f6',
-              icon: '📊',
-            },
-            {
-              label: 'Peak RPM',
-              value: rpmHistory.length > 0 ? Math.max(...rpmHistory.map(p => p.total)) : 0,
-              color: '#f59e0b',
-              icon: '⬆️',
-            },
-            {
-              label: 'Avg RPM',
-              value: rpmHistory.length > 0
-                ? Math.round(rpmHistory.reduce((s, p) => s + p.total, 0) / rpmHistory.length)
-                : 0,
-              color: '#10b981',
-              icon: '📈',
-            },
-            {
-              label: 'Spikes',
-              value: rpmHistory.filter(p => p.isSpike).length,
-              color: '#ef4444',
-              icon: '⚠️',
-            },
-          ].map(({ label, value, color, icon }) => (
-            <div key={label} style={{ background: '#0d1117', borderRadius: 10, padding: isMobile ? '8px 10px' : '10px 14px', textAlign: 'center' }}>
-              <div style={{ fontSize: isMobile ? 16 : 20, fontWeight: 700, color, marginBottom: 2 }}>{value}</div>
-              <div style={{ fontSize: isMobile ? 9 : 10, color: '#6b7280' }}>{icon} {label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ── SIMPLE DONUT CHART ── */}
+      <DonutChart
+        total={data.totalRequests || 0}
+        blocked={data.blocked || 0}
+        allowed={data.totalRequests || 0}
+        rateLimited={data.rateLimited || 0}
+        isMobile={isMobile}
+      />
 
       <div style={S.grid2(isMobile)}>
         <div style={S.card}>
