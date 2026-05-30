@@ -152,23 +152,27 @@ async def get_overview():
                     "Authorization": f"Bearer {SUPABASE_KEY}",
                     "Content-Type": "application/json"
                 }
-                # Count total from gateway_stats table
+                # Count total from gateway_stats table - get most recent record with actual data
                 async with httpx.AsyncClient() as client:
                     res = await client.get(
-                        f"{SUPABASE_URL}/rest/v1/gateway_stats?select=total_requests,blocked_requests,allowed_requests,rate_limited&order=created_at.desc&limit=1",
+                        f"{SUPABASE_URL}/rest/v1/gateway_stats?select=total_requests,blocked_requests,allowed_requests,rate_limited&order=created_at.desc&limit=10",
                         headers=headers,
                         timeout=5.0
                     )
                     if res.status_code == 200:
                         data = res.json()
                         if data and len(data) > 0:
-                            row = data[0]
-                            total        = row.get("total_requests",   0) or 0
-                            blocked      = row.get("blocked_requests",  0) or 0
-                            allowed      = row.get("allowed_requests",  0) or 0
-                            rate_limited = row.get("rate_limited",      0) or 0
+                            # Find the most recent record with actual data (total_requests > 0)
+                            for row in data:
+                                row_total = row.get("total_requests", 0) or 0
+                                if row_total > 0:
+                                    total        = row_total
+                                    blocked      = row.get("blocked_requests",  0) or 0
+                                    allowed      = row.get("allowed_requests",  0) or 0
+                                    rate_limited = row.get("rate_limited",      0) or 0
+                                    break
 
-                # Also count from threat_logs
+                # Also count from threat_logs if still no blocked data
                 if blocked == 0:
                     res2 = await client.get(
                         f"{SUPABASE_URL}/rest/v1/threat_logs?select=count",
