@@ -3,7 +3,7 @@ import {
   LineChart, Line, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, Legend,
-  PieChart, Pie, Cell,
+  PieChart, Pie, Cell, BarChart, Bar,
 } from 'recharts'
 import WorldMap from './WorldMap'
 
