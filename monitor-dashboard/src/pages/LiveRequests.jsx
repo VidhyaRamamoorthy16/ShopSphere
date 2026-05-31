@@ -244,10 +244,10 @@ export default function LiveRequests() {
       {/* Stat cards — 2x2 on mobile, 4x1 on desktop */}
       <div style={s.statsRow}>
         {[
-          { label: 'TOTAL',   value: stats.total   || requests.length, color: '#3b82f6' },
-          { label: 'ALLOWED', value: stats.allowed || requests.filter(r => r.action === 'allowed' || (r.status_code >= 200 && r.status_code < 400)).length, color: '#10b981' },
-          { label: 'BLOCKED', value: stats.blocked || requests.filter(r => r.action === 'blocked' || r.status_code >= 400).length, color: '#ef4444' },
-          { label: 'ERRORS',  value: stats.errors  || requests.filter(r => r.status_code >= 500).length, color: '#f59e0b' },
+          { label: 'TOTAL',   value: requests.length, color: '#3b82f6' },
+          { label: 'ALLOWED', value: requests.filter(r => r.action === 'allowed' || (r.status_code >= 200 && r.status_code < 400)).length, color: '#10b981' },
+          { label: 'BLOCKED', value: requests.filter(r => r.action === 'blocked' || r.status_code >= 400).length, color: '#ef4444' },
+          { label: 'ERRORS',  value: requests.filter(r => r.status_code >= 500).length, color: '#f59e0b' },
         ].map(({ label, value, color }) => (
           <div key={label} style={{
             background:   '#111827',
