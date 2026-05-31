@@ -272,29 +272,6 @@ export default function LiveRequests() {
         ))}
       </div>
 
-      {/* Demo banner */}
-      {isDemoMode && (
-        <div style={{
-          background:   'rgba(245,158,11,0.08)',
-          border:       '1px solid rgba(245,158,11,0.25)',
-          borderRadius: 10,
-          padding:      '10px 16px',
-          marginBottom: 12,
-          fontSize:     12,
-          color:        '#f59e0b',
-          fontWeight:   600,
-          display:      'flex',
-          alignItems:   'center',
-          gap:          8,
-        }}>
-          🎭 Demo Mode — showing sample requests.
-          <a href="https://shop-sphere-wine.vercel.app" target="_blank" rel="noreferrer"
-            style={{ color:'#60a5fa', fontWeight:700, textDecoration:'none', marginLeft:4 }}>
-            Browse store to see real traffic →
-          </a>
-        </div>
-      )}
-
       {/* ── REQUESTS FEED ── */}
       {loading ? (
         <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280', fontSize: 14 }}>
