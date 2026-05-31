@@ -2,6 +2,22 @@ import React, { useState, useEffect, useRef } from 'react'
 
 const MONITOR = (import.meta.env.VITE_MONITOR_URL || 'https://shopsphere-monitor.onrender.com')
 
+// ── Demo data shown when Redis has no real traffic ──────────────────────
+const DEMO_REQUESTS = [
+  { timestamp: new Date(Date.now() - 2000).toISOString(),  ip_address: '103.21.244.1',  method: 'GET',  endpoint: '/api/products',           status_code: 200, duration_ms: 58,  action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 4000).toISOString(),  ip_address: '185.220.101.4', method: 'POST', endpoint: '/api/auth/login',          status_code: 403, duration_ms: 45,  action: 'blocked', reason: 'SQL Injection' },
+  { timestamp: new Date(Date.now() - 7000).toISOString(),  ip_address: '45.142.212.10', method: 'GET',  endpoint: '/api/products?category=Electronics', status_code: 200, duration_ms: 62, action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 10000).toISOString(), ip_address: '91.108.4.22',   method: 'POST', endpoint: '/api/cart',                status_code: 200, duration_ms: 74, action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 13000).toISOString(), ip_address: '31.13.64.15',   method: 'GET',  endpoint: "/api/products?search=<script>alert(1)</script>", status_code: 403, duration_ms: 38, action: 'blocked', reason: 'XSS Attack' },
+  { timestamp: new Date(Date.now() - 16000).toISOString(), ip_address: '142.250.1.5',   method: 'GET',  endpoint: '/api/products/electronics-1', status_code: 200, duration_ms: 55, action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 19000).toISOString(), ip_address: '52.26.1.8',     method: 'POST', endpoint: '/api/wishlist',            status_code: 200, duration_ms: 68, action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 22000).toISOString(), ip_address: '178.62.1.33',   method: 'GET',  endpoint: '/api/products?file=../../etc/passwd', status_code: 403, duration_ms: 32, action: 'blocked', reason: 'Path Traversal' },
+  { timestamp: new Date(Date.now() - 25000).toISOString(), ip_address: '66.249.66.1',   method: 'POST', endpoint: '/api/auth/login',          status_code: 403, duration_ms: 41, action: 'blocked', reason: 'Brute Force' },
+  { timestamp: new Date(Date.now() - 28000).toISOString(), ip_address: '103.21.244.2',  method: 'GET',  endpoint: '/api/products?category=Fashion', status_code: 200, duration_ms: 59, action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 31000).toISOString(), ip_address: '8.8.8.8',       method: 'GET',  endpoint: '/api/orders',             status_code: 200, duration_ms: 82, action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 34000).toISOString(), ip_address: '1.1.1.1',       method: 'GET',  endpoint: '/api/products?id=1 UNION SELECT * FROM users', status_code: 403, duration_ms: 29, action: 'blocked', reason: 'SQL Injection' },
+]
+
 const METHOD_COLORS = {
   GET: { bg: '#e3f2fd', color: '#0c447c' },
   POST: { bg: '#e8f5e9', color: '#27500a' },
@@ -30,6 +46,7 @@ const formatTime = (ts) => {
 
 export default function LiveRequests() {
   const [requests, setRequests] = useState([])
+  const [isDemoMode, setIsDemoMode] = useState(false)
   const [paused, setPaused] = useState(false)
   const [filter, setFilter] = useState('ALL')
   const [total, setTotal] = useState(0)
@@ -52,8 +69,16 @@ export default function LiveRequests() {
       const res = await fetch(`${MONITOR}/monitor/requests/live`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json()
-      setRequests(data.requests || [])
-      setTotal(data.total || 0)
+      const fetched = data.requests || []
+      if (!fetched || fetched.length === 0) {
+        setIsDemoMode(true)
+        setRequests(DEMO_REQUESTS)
+        setTotal(DEMO_REQUESTS.length)
+      } else {
+        setIsDemoMode(false)
+        setRequests(fetched)
+        setTotal(data.total || 0)
+      }
       setLastUpdate(new Date().toLocaleTimeString())
       setError(null)
     } catch (e) {
@@ -246,6 +271,29 @@ export default function LiveRequests() {
           </button>
         ))}
       </div>
+
+      {/* Demo banner */}
+      {isDemoMode && (
+        <div style={{
+          background:   'rgba(245,158,11,0.08)',
+          border:       '1px solid rgba(245,158,11,0.25)',
+          borderRadius: 10,
+          padding:      '10px 16px',
+          marginBottom: 12,
+          fontSize:     12,
+          color:        '#f59e0b',
+          fontWeight:   600,
+          display:      'flex',
+          alignItems:   'center',
+          gap:          8,
+        }}>
+          🎭 Demo Mode — showing sample requests.
+          <a href="https://shop-sphere-wine.vercel.app" target="_blank" rel="noreferrer"
+            style={{ color:'#60a5fa', fontWeight:700, textDecoration:'none', marginLeft:4 }}>
+            Browse store to see real traffic →
+          </a>
+        </div>
+      )}
 
       {/* ── REQUESTS FEED ── */}
       {loading ? (

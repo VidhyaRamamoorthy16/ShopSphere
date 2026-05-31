@@ -8,6 +8,42 @@ import {
 import WorldMap from './WorldMap'
 import DonutChart from '../components/DonutChart'
 
+// ── Demo data shown when Redis has no real traffic ──────────────────────
+const DEMO_OVERVIEW = {
+  total_requests:   2847,
+  blocked_requests: 312,
+  allowed_requests: 2463,
+  rate_limited:     72,
+  threat_score:     11,
+  avg_response_time: 66.36,
+  uptime:           99.9,
+  totalRequests:    2847,
+  blockedRequests:  312,
+  allowedRequests:  2463,
+  rateLimited:      72,
+  threatScore:      11,
+}
+
+const DEMO_REQUESTS = [
+  { timestamp: new Date(Date.now() - 2000).toISOString(),  ip_address: '103.21.244.1', method: 'GET',  endpoint: '/api/products',          status_code: 200, duration_ms: 58,  action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 5000).toISOString(),  ip_address: '185.220.101.4',method: 'POST', endpoint: '/api/auth/login',         status_code: 403, duration_ms: 45,  action: 'blocked', reason: 'SQL Injection' },
+  { timestamp: new Date(Date.now() - 8000).toISOString(),  ip_address: '45.142.212.10',method: 'GET',  endpoint: '/api/products?category=Electronics', status_code: 200, duration_ms: 62,  action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 12000).toISOString(), ip_address: '91.108.4.22',  method: 'POST', endpoint: '/api/cart',               status_code: 200, duration_ms: 74,  action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 15000).toISOString(), ip_address: '31.13.64.15',  method: 'GET',  endpoint: "/api/products?search=<script>", status_code: 403, duration_ms: 38, action: 'blocked', reason: 'XSS Attack' },
+  { timestamp: new Date(Date.now() - 18000).toISOString(), ip_address: '142.250.1.5',  method: 'GET',  endpoint: '/api/products/1',         status_code: 200, duration_ms: 55,  action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 22000).toISOString(), ip_address: '52.26.1.8',    method: 'POST', endpoint: '/api/wishlist',           status_code: 200, duration_ms: 68,  action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 25000).toISOString(), ip_address: '178.62.1.33',  method: 'GET',  endpoint: "/api/products?file=../../etc/passwd", status_code: 403, duration_ms: 32, action: 'blocked', reason: 'Path Traversal' },
+  { timestamp: new Date(Date.now() - 30000).toISOString(), ip_address: '103.21.244.2', method: 'GET',  endpoint: '/api/products?category=Mobiles',   status_code: 200, duration_ms: 61, action: 'allowed', reason: '' },
+  { timestamp: new Date(Date.now() - 35000).toISOString(), ip_address: '66.249.66.1',  method: 'POST', endpoint: '/api/auth/login',         status_code: 403, duration_ms: 41, action: 'blocked', reason: 'Brute Force' },
+]
+
+const isAllZero = (data) =>
+  !data ||
+  (
+    (data.total_requests   || data.totalRequests   || 0) === 0 &&
+    (data.blocked_requests || data.blockedRequests || 0) === 0
+  )
+
 const S = {
   content: { padding:'24px' },
   card: { background:'#1A1A2E', border:'1px solid #2D2D4E', borderRadius:'16px', padding:'20px' },
@@ -127,6 +163,7 @@ export default function Overview() {
     rateLimited: 47,
     threatScore: 62
   })
+  const [isDemoMode, setIsDemoMode] = useState(false)
   const [weekStats, setWeekStats] = useState({ total_7d: 0, blocked_7d: 0, threats_7d: 0, block_rate_pct: 0, daily: [] })
   const [windowWidth, setWindowWidth] = React.useState(window.innerWidth)
 
@@ -159,12 +196,19 @@ export default function Overview() {
         const res = await fetch(`${BASE}/monitor/overview`)
         const stats = await res.json()
         if (stats.total_requests !== undefined) {
-          setData({
+          const fetchedData = {
             totalRequests: stats.total_requests,
             blocked: stats.blocked_requests,
             rateLimited: stats.rate_limited,
             threatScore: stats.threat_score
-          })
+          }
+          if (isAllZero(fetchedData)) {
+            setIsDemoMode(true)
+            setData(DEMO_OVERVIEW)
+          } else {
+            setIsDemoMode(false)
+            setData(fetchedData)
+          }
         }
       } catch (e) {
         console.log('Using mock data', e)
@@ -278,85 +322,73 @@ export default function Overview() {
       </div>
 
       {/* No traffic banner */}
-      {(data.total_requests === 0 || data.totalRequests === 0) && (
+      {/* Demo mode banner — shows when using predefined data */}
+      {isDemoMode && (
         <div style={{
-          background:   'rgba(37,99,235,0.08)',
-          border:       '1px solid rgba(37,99,235,0.2)',
-          borderRadius: 14,
-          padding:      isMobile ? '16px' : '20px 24px',
-          marginBottom: isMobile ? 14 : 20,
+          background:   'rgba(245,158,11,0.08)',
+          border:       '1px solid rgba(245,158,11,0.25)',
+          borderRadius: 12,
+          padding:      isMobile ? '10px 14px' : '12px 20px',
+          marginBottom: isMobile ? 12 : 16,
           display:      'flex',
-          alignItems:   isMobile ? 'flex-start' : 'center',
-          gap:          16,
-          flexDirection: isMobile ? 'column' : 'row',
+          alignItems:   'center',
+          justifyContent: 'space-between',
+          flexWrap:     'wrap',
+          gap:          10,
         }}>
-          <div style={{ fontSize: isMobile ? 28 : 36, flexShrink: 0 }}>📡</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
-              No traffic data yet
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 18 }}>🎭</span>
+            <div>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b' }}>
+                Demo Mode — Showing sample data
+              </span>
+              <span style={{ fontSize: 11, color: '#6b7280', display: 'block', marginTop: 1 }}>
+                Browse the store to see your real live traffic
+              </span>
             </div>
-            <div style={{ fontSize: 13, color: '#6b7280', lineHeight: 1.6, marginBottom: 12 }}>
-              The gateway has no requests logged. Browse the store to generate live traffic — it will appear here within 10 seconds.
-            </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <a
-                href="https://shop-sphere-wine.vercel.app"
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  background:     '#2563eb',
-                  color:          '#fff',
-                  borderRadius:   10,
-                  padding:        '8px 18px',
-                  fontSize:       12,
-                  fontWeight:     700,
-                  textDecoration: 'none',
-                }}>
-                🛒 Open Store to Generate Traffic
-              </a>
-              <a
-                href="https://shopsphere-gateway.onrender.com/health"
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  background:     'rgba(255,255,255,0.06)',
-                  color:          '#9ca3af',
-                  borderRadius:   10,
-                  padding:        '8px 18px',
-                  fontSize:       12,
-                  fontWeight:     600,
-                  textDecoration: 'none',
-                  border:         '1px solid #1f2937',
-                }}>
-                ⚡ Wake Gateway
-              </a>
-              <a
-                href="https://shopsphere-monitor.onrender.com/monitor/overview"
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  background:     'rgba(255,255,255,0.06)',
-                  color:          '#9ca3af',
-                  borderRadius:   10,
-                  padding:        '8px 18px',
-                  fontSize:       12,
-                  fontWeight:     600,
-                  textDecoration: 'none',
-                  border:         '1px solid #1f2937',
-                }}>
-                📡 Check Monitor API
-              </a>
-            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <a
+              href="https://shop-sphere-wine.vercel.app"
+              target="_blank" rel="noreferrer"
+              style={{
+                background:     '#2563eb',
+                color:          '#fff',
+                borderRadius:   8,
+                padding:        '6px 14px',
+                fontSize:       11,
+                fontWeight:     700,
+                textDecoration: 'none',
+                whiteSpace:     'nowrap',
+              }}>
+              🛒 Generate Real Traffic
+            </a>
+            <a
+              href="https://shopsphere-gateway.onrender.com/health"
+              target="_blank" rel="noreferrer"
+              style={{
+                background:     'rgba(255,255,255,0.05)',
+                color:          '#9ca3af',
+                borderRadius:   8,
+                padding:        '6px 14px',
+                fontSize:       11,
+                fontWeight:     600,
+                textDecoration: 'none',
+                border:         '1px solid #1f2937',
+                whiteSpace:     'nowrap',
+              }}>
+              ⚡ Wake Gateway
+            </a>
           </div>
         </div>
       )}
 
       {/* ── SIMPLE DONUT CHART ── */}
       <DonutChart
-        total={data.totalRequests || 0}
-        blocked={data.blocked || 0}
-        allowed={data.totalRequests || 0}
-        rateLimited={data.rateLimited || 0}
+        total={data.total_requests || data.totalRequests || 0}
+        blocked={data.blocked_requests || data.blocked || 0}
+        allowed={data.allowed_requests || data.allowedRequests || 0}
+        rateLimited={data.rate_limited || data.rateLimited || 0}
         isMobile={isMobile}
       />
 
